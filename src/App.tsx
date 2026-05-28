@@ -24,8 +24,8 @@ function App() {
   const location = useLocation();
 
   // Routes that should show bottom navigation
-  const showNavRoutes = ['/home', '/refill', '/wallet', '/bottles', '/transactions', '/rewards', '/machines', '/eco-impact', '/profile'];
-  const showNav = showNavRoutes.includes(location.pathname);
+  const showNavRoutes = ['/home', '/wallet', '/transactions', '/rewards', '/machines', '/eco-impact', '/profile'];
+  const showNav = showNavRoutes.includes(location.pathname) || location.pathname.startsWith('/refill');
 
   // Protected route wrapper
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

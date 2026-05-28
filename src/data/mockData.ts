@@ -13,6 +13,7 @@ export interface Machine {
 export interface Product {
   id: string;
   name: string;
+  nameId?: string;
   category: string;
   pricePerMl: number;
   icon: string;
@@ -59,7 +60,7 @@ export const machines: Machine[] = [
     address: 'Jl. Sudirman No. 123, Jakarta',
     status: 'Available',
     distance: '0.3 km',
-    products: ['hand-soap', 'shampoo', 'detergent', 'dish-soap', 'laundry-fragrance']
+    products: ['bath-soap', 'shampoo', 'detergent', 'dish-soap', 'floor-cleaner']
   },
   {
     id: 'M002',
@@ -68,7 +69,7 @@ export const machines: Machine[] = [
     address: 'Jl. Gatot Subroto No. 45, Jakarta',
     status: 'Available',
     distance: '0.8 km',
-    products: ['hand-soap', 'shampoo', 'detergent', 'laundry-fragrance']
+    products: ['bath-soap', 'shampoo', 'detergent', 'dish-soap', 'floor-cleaner']
   },
   {
     id: 'M003',
@@ -77,7 +78,7 @@ export const machines: Machine[] = [
     address: 'Jl. HR. Rasuna Said No. 78, Jakarta',
     status: 'Busy',
     distance: '1.2 km',
-    products: ['hand-soap', 'shampoo', 'dish-soap']
+    products: ['bath-soap', 'shampoo', 'detergent', 'dish-soap', 'floor-cleaner']
   },
   {
     id: 'M004',
@@ -86,7 +87,7 @@ export const machines: Machine[] = [
     address: 'Jl. Kemang No. 56, Jakarta',
     status: 'Available',
     distance: '1.5 km',
-    products: ['hand-soap', 'shampoo', 'detergent', 'dish-soap', 'laundry-fragrance']
+    products: ['bath-soap', 'shampoo', 'detergent', 'dish-soap', 'floor-cleaner']
   },
   {
     id: 'M005',
@@ -95,7 +96,7 @@ export const machines: Machine[] = [
     address: 'Jl. Pluit No. 89, Jakarta',
     status: 'Offline',
     distance: '2.1 km',
-    products: ['hand-soap', 'detergent', 'laundry-fragrance']
+    products: ['bath-soap', 'shampoo', 'detergent', 'dish-soap', 'floor-cleaner']
   },
   {
     id: 'M006',
@@ -104,55 +105,60 @@ export const machines: Machine[] = [
     address: 'Jl. Pondok Indah No. 12, Jakarta',
     status: 'Maintenance',
     distance: '2.8 km',
-    products: ['hand-soap', 'shampoo', 'detergent']
+    products: ['bath-soap', 'shampoo', 'detergent', 'dish-soap', 'floor-cleaner']
   }
 ];
 
 export const products: Product[] = [
   {
-    id: 'hand-soap',
-    name: 'Hand Soap',
+    id: 'bath-soap',
+    name: 'Bath Soap',
+    nameId: 'Sabun Mandi',
     category: 'Personal Care',
     pricePerMl: 0.5,
     icon: '🧼',
     color: '#00B4D8',
-    description: 'Gentle antibacterial hand soap with natural ingredients'
+    description: 'Gentle cleansing soap for body'
   },
   {
     id: 'shampoo',
     name: 'Shampoo',
+    nameId: 'Sampo',
     category: 'Personal Care',
     pricePerMl: 0.8,
     icon: '🧴',
     color: '#90BE6D',
-    description: 'Herbal shampoo for healthy shiny hair'
+    description: 'Herbal shampoo for healthy hair'
   },
   {
     id: 'detergent',
-    name: 'Detergent',
+    name: 'Liquid Detergent',
+    nameId: 'Deterjen Cair',
     category: 'Household',
     pricePerMl: 0.4,
     icon: '🫧',
     color: '#F9C74F',
-    description: 'Eco-friendly laundry detergent concentrate'
+    description: 'Eco-friendly laundry detergent'
   },
   {
     id: 'dish-soap',
-    name: 'Dish Soap',
+    name: 'Dishwashing Liquid',
+    nameId: 'Sabun Cuci Piring',
     category: 'Household',
     pricePerMl: 0.35,
     icon: '🍽️',
     color: '#F8961E',
-    description: 'Effective dishwashing liquid with plant-based formula'
+    description: 'Effective dish cleaning liquid'
   },
   {
-    id: 'laundry-fragrance',
-    name: 'Laundry Fragrance',
+    id: 'floor-cleaner',
+    name: 'Floor Cleaner',
+    nameId: 'Pembersih Lantai',
     category: 'Household',
-    pricePerMl: 0.6,
-    icon: '🌸',
+    pricePerMl: 0.45,
+    icon: '🧹',
     color: '#E76F51',
-    description: 'Fresh linen scent for lasting freshness'
+    description: 'Fresh scent floor disinfectant'
   }
 ];
 

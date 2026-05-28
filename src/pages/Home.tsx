@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { formatRupiah, formatPoints } from '../utils/formatters';
 import {
   Wallet,
   Recycle,
@@ -9,7 +10,8 @@ import {
   Droplet,
   QrCode,
   MapPin,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -25,24 +27,16 @@ const Home = () => {
     const date = new Date(dateStr);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
+    if (diffDays === 0) return 'Hari ini';
+    if (diffDays === 1) return 'Kemarin';
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
   };
 
   const quickActions = [
-    { icon: QrCode, label: 'Refill Now', color: '#00564A', path: '/refill' },
-    { icon: Recycle, label: 'My Bottles', color: '#00796B', path: '/bottles' },
-    { icon: MapPin, label: 'Find Machine', color: '#00B4D8', path: '/machines' },
+    { icon: QrCode, label: 'Refill Sekarang', color: '#006035', path: '/refill' },
+    { icon: Recycle, label: 'Botol Saya', color: '#008045', path: '/bottles' },
+    { icon: MapPin, label: 'Cari Mesin', color: '#00B4D8', path: '/machines' },
     { icon: Leaf, label: 'Eco Impact', color: '#90BE6D', path: '/eco-impact' }
   ];
 
@@ -51,7 +45,7 @@ const Home = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-b from-[#DFF5F1] to-white pb-nav"
+      className="min-h-screen bg-gradient-to-b from-[#E8F5EF] to-white pb-nav"
     >
       {/* Header */}
       <div className="px-6 pt-12 pb-6">
@@ -61,14 +55,14 @@ const Home = () => {
           className="flex items-center justify-between mb-6"
         >
           <div>
-            <p className="text-gray-500 text-sm">Welcome back,</p>
+            <p className="text-gray-500 text-sm">Selamat datang,</p>
             <h1 className="text-2xl font-bold text-gray-900">{state.user?.name || 'Eco Warrior'}</h1>
           </div>
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-full bg-[#00564A] flex items-center justify-center text-white font-bold text-lg shadow-md cursor-pointer"
+            className="w-12 h-12 rounded-full bg-[#006035] flex items-center justify-center text-white font-bold text-lg shadow-md cursor-pointer"
           >
             {state.user?.name?.charAt(0) || 'E'}
           </motion.div>
@@ -79,20 +73,29 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          whileHover={{ scale: 1.02 }}
-          onClick={() => navigate('/wallet')}
-          className="bg-gradient-to-br from-[#00564A] to-[#00796B] rounded-3xl p-6 text-white shadow-xl shadow-[#00564A]/30 cursor-pointer relative overflow-hidden"
+          className="bg-gradient-to-br from-[#006035] to-[#008045] rounded-3xl p-6 text-white shadow-xl shadow-[#006035]/30 relative overflow-hidden"
         >
           {/* Decorative circles */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full" />
           <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/10 rounded-full" />
 
           <div className="relative">
-            <div className="flex items-center gap-2 mb-4">
-              <Wallet size={20} />
-              <span className="text-white/80 text-sm font-medium">Wallet Balance</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Wallet size={20} />
+                <span className="text-white/80 text-sm font-medium">Saldo Dompet</span>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/wallet')}
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-sm font-medium transition-colors"
+              >
+                <Plus size={16} />
+                Top Up
+              </motion.button>
             </div>
-            <h2 className="text-4xl font-bold mb-6">{formatCurrency(state.walletBalance)}</h2>
+            <h2 className="text-4xl font-bold mb-6">{formatRupiah(state.walletBalance)}</h2>
 
             <div className="flex gap-4">
               <div className="flex-1 bg-white/20 rounded-2xl p-3 backdrop-blur-sm">
@@ -100,14 +103,14 @@ const Home = () => {
                   <Recycle size={16} className="text-white/80" />
                   <span className="text-white/80 text-xs">Deposit</span>
                 </div>
-                <p className="font-bold text-lg">{formatCurrency(state.depositBalance)}</p>
+                <p className="font-bold text-lg">{formatRupiah(state.depositBalance)}</p>
               </div>
               <div className="flex-1 bg-white/20 rounded-2xl p-3 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-1">
                   <Leaf size={16} className="text-white/80" />
                   <span className="text-white/80 text-xs">Eco Points</span>
                 </div>
-                <p className="font-bold text-lg">{state.ecoPoints.toLocaleString()}</p>
+                <p className="font-bold text-lg">{formatPoints(state.ecoPoints)}</p>
               </div>
             </div>
           </div>
@@ -121,7 +124,7 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Aksi Cepat</h3>
           <div className="grid grid-cols-4 gap-3">
             {quickActions.map((action, idx) => (
               <motion.button
@@ -140,7 +143,7 @@ const Home = () => {
                 >
                   <action.icon size={24} style={{ color: action.color }} />
                 </div>
-                <span className="text-xs text-gray-600 font-medium">{action.label}</span>
+                <span className="text-xs text-gray-600 font-medium text-center leading-tight">{action.label}</span>
               </motion.button>
             ))}
           </div>
@@ -154,31 +157,31 @@ const Home = () => {
         transition={{ delay: 0.3 }}
         className="px-6 mb-6"
       >
-        <div className="bg-gradient-to-r from-[#E8F5F2] to-[#DFF5F1] rounded-2xl p-4">
+        <div className="bg-gradient-to-r from-[#F0FAF5] to-[#E8F5EF] rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <TrendingUp size={18} className="text-[#00564A]" />
-              <span className="font-semibold text-gray-900">Your Eco Impact</span>
+              <TrendingUp size={18} className="text-[#006035]" />
+              <span className="font-semibold text-gray-900">Eco Impact Anda</span>
             </div>
             <button
               onClick={() => navigate('/eco-impact')}
-              className="text-[#00564A] text-sm font-medium flex items-center gap-1"
+              className="text-[#006035] text-sm font-medium flex items-center gap-1"
             >
-              View All <ChevronRight size={16} />
+              Lihat <ChevronRight size={16} />
             </button>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-white/80 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-[#00564A]">{state.ecoStats.plasticBottlesSaved}</p>
-              <p className="text-xs text-gray-500 mt-1">Bottles Saved</p>
+              <p className="text-2xl font-bold text-[#006035]">{state.ecoStats.plasticBottlesSaved}</p>
+              <p className="text-xs text-gray-500 mt-1">Botol Tersimpan</p>
             </div>
             <div className="bg-white/80 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-[#00564A]">{state.ecoStats.plasticWasteReduced.toFixed(1)}kg</p>
-              <p className="text-xs text-gray-500 mt-1">Waste Reduced</p>
+              <p className="text-2xl font-bold text-[#006035]">{state.ecoStats.plasticWasteReduced.toFixed(1)}kg</p>
+              <p className="text-xs text-gray-500 mt-1">Sampah Berkurang</p>
             </div>
             <div className="bg-white/80 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-[#00564A]">{state.ecoStats.treesEquiv}</p>
-              <p className="text-xs text-gray-500 mt-1">Trees Saved</p>
+              <p className="text-2xl font-bold text-[#006035]">{state.ecoStats.treesEquiv}</p>
+              <p className="text-xs text-gray-500 mt-1">Pohon Diselamatkan</p>
             </div>
           </div>
         </div>
@@ -192,12 +195,12 @@ const Home = () => {
         className="px-6"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Aktivitas Terbaru</h3>
           <button
             onClick={() => navigate('/transactions')}
-            className="text-[#00564A] text-sm font-medium flex items-center gap-1"
+            className="text-[#006035] text-sm font-medium flex items-center gap-1"
           >
-            See All <ChevronRight size={16} />
+            Lihat Semua <ChevronRight size={16} />
           </button>
         </div>
 
@@ -212,13 +215,13 @@ const Home = () => {
             >
               <div
                 className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  txn.type === 'refill' ? 'bg-[#DFF5F1]' :
+                  txn.type === 'refill' ? 'bg-[#E8F5EF]' :
                   txn.type === 'topup' ? 'bg-[#E8F5E0]' :
                   txn.type === 'reward' ? 'bg-[#FFF9E6]' :
                   'bg-[#F3F4F6]'
                 }`}
               >
-                {txn.type === 'refill' && <Droplet size={20} className="text-[#00564A]" />}
+                {txn.type === 'refill' && <Droplet size={20} className="text-[#006035]" />}
                 {txn.type === 'topup' && <Wallet size={20} className="text-[#90BE6D]" />}
                 {txn.type === 'reward' && <Leaf size={20} className="text-[#F9C74F]" />}
                 {txn.type === 'deposit' && <Recycle size={20} className="text-gray-600" />}
@@ -232,7 +235,7 @@ const Home = () => {
                 txn.type === 'topup' || txn.type === 'refund' ? 'text-green-600' : 'text-gray-900'
               }`}>
                 {txn.type === 'topup' || txn.type === 'refund' ? '+' : '-'}
-                {formatCurrency(txn.amount)}
+                {formatRupiah(txn.amount)}
               </p>
             </motion.div>
           ))}

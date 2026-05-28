@@ -27,56 +27,42 @@ const Splash = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#DFF5F1] via-[#E8F5F2] to-white"
+      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#E8F5EF] via-[#F0FAF5] to-white"
     >
       {/* Logo */}
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-        className="mb-6"
+        className="mb-5"
       >
         <div className="relative">
           <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-            className="w-24 h-24 bg-[#00564A] rounded-3xl flex items-center justify-center shadow-lg shadow-[#00564A]/30"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-20 h-20 bg-[#006035] rounded-2xl flex items-center justify-center shadow-lg shadow-[#006035]/25"
           >
-            <Droplet size={48} className="text-white" />
-          </motion.div>
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.5 }}
-            className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#00796B] rounded-full flex items-center justify-center"
-          >
-            <span className="text-white text-xs font-bold">ECO</span>
+            <Droplet size={40} className="text-white" />
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Brand Name */}
+      {/* Brand Name - Smaller, more elegant */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="text-4xl font-bold text-[#00564A] mb-2"
+        className="text-2xl font-semibold text-[#006035] mb-1 tracking-wide"
       >
         EcoRefill
       </motion.h1>
 
-      {/* Tagline */}
+      {/* Tagline - Smaller, more minimal */}
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="text-gray-500 text-lg font-light"
+        className="text-gray-400 text-sm font-light tracking-wider"
       >
         Refill smarter. Waste less.
       </motion.p>
@@ -88,20 +74,20 @@ const Splash = () => {
         transition={{ delay: 1 }}
         className="mt-16"
       >
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.5, 1, 0.5],
+                scale: [1, 1.2, 1],
+                opacity: [0.4, 1, 0.4],
               }}
               transition={{
-                duration: 1,
+                duration: 1.2,
                 repeat: Infinity,
-                delay: i * 0.2,
+                delay: i * 0.15,
               }}
-              className="w-2.5 h-2.5 bg-[#00564A] rounded-full"
+              className="w-2 h-2 bg-[#006035] rounded-full"
             />
           ))}
         </div>
@@ -112,7 +98,7 @@ const Splash = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="absolute bottom-8 text-gray-400 text-sm"
+        className="absolute bottom-6 text-gray-300 text-xs tracking-wide"
       >
         Version 1.0.0
       </motion.p>

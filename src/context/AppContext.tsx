@@ -13,6 +13,8 @@ interface AppState {
   activeRefill: ActiveRefill | null;
   hasSeenOnboarding: boolean;
   ecoStats: typeof ecoStats;
+  selectedContainer: 'own' | 'deposit' | null;
+  selectedMachine: string | null;
 }
 
 interface User {
@@ -41,6 +43,7 @@ type Action =
   | { type: 'SET_WALLET_BALANCE'; payload: number }
   | { type: 'TOP_UP_WALLET'; payload: number }
   | { type: 'DEDUCT_WALLET'; payload: number }
+  | { type: 'WITHDRAW_WALLET'; payload: number }
   | { type: 'ADD_TRANSACTION'; payload: Transaction }
   | { type: 'ADD_BOTTLE'; payload: Bottle }
   | { type: 'UPDATE_BOTTLE'; payload: { id: string; updates: Partial<Bottle> } }
@@ -48,7 +51,9 @@ type Action =
   | { type: 'ADD_ECO_POINTS'; payload: number }
   | { type: 'SET_ACTIVE_REFILL'; payload: ActiveRefill | null }
   | { type: 'COMPLETE_REFILL' }
-  | { type: 'SET_ONBOARDING_COMPLETE' };
+  | { type: 'SET_ONBOARDING_COMPLETE' }
+  | { type: 'SET_CONTAINER'; payload: 'own' | 'deposit' | null }
+  | { type: 'SET_SELECTED_MACHINE'; payload: string | null };
 
 // Initial state
 const initialState: AppState = {
@@ -61,7 +66,9 @@ const initialState: AppState = {
   transactions: initialTransactions,
   activeRefill: null,
   hasSeenOnboarding: false,
-  ecoStats: ecoStats
+  ecoStats: ecoStats,
+  selectedContainer: null,
+  selectedMachine: null
 };
 
 // LocalStorage keys
@@ -76,7 +83,6 @@ const loadState = (): AppState => {
       return {
         ...initialState,
         ...parsed,
-        // Always use fresh eco stats
         ecoStats: ecoStats
       };
     }
@@ -97,7 +103,9 @@ const saveState = (state: AppState): void => {
       ecoPoints: state.ecoPoints,
       bottles: state.bottles,
       transactions: state.transactions,
-      hasSeenOnboarding: state.hasSeenOnboarding
+      hasSeenOnboarding: state.hasSeenOnboarding,
+      selectedContainer: state.selectedContainer,
+      selectedMachine: state.selectedMachine
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
@@ -121,6 +129,9 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, walletBalance: state.walletBalance + action.payload };
 
     case 'DEDUCT_WALLET':
+      return { ...state, walletBalance: state.walletBalance - action.payload };
+
+    case 'WITHDRAW_WALLET':
       return { ...state, walletBalance: state.walletBalance - action.payload };
 
     case 'ADD_TRANSACTION':
@@ -168,6 +179,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
 
     case 'SET_ONBOARDING_COMPLETE':
       return { ...state, hasSeenOnboarding: true };
+
+    case 'SET_CONTAINER':
+      return { ...state, selectedContainer: action.payload };
+
+    case 'SET_SELECTED_MACHINE':
+      return { ...state, selectedMachine: action.payload };
 
     default:
       return state;

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { achievements } from '../data/mockData';
+import { formatPoints } from '../utils/formatters';
 import {
   Recycle,
   Leaf,
@@ -10,7 +12,9 @@ import {
   TrendingUp,
   Award,
   Globe2,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  Trophy
 } from 'lucide-react';
 
 const AnimatedNumber = ({ value, suffix = '', duration = 2 }: { value: number; suffix?: string; duration?: number }) => {
@@ -42,7 +46,7 @@ const AnimatedNumber = ({ value, suffix = '', duration = 2 }: { value: number; s
   );
 };
 
-const CircularProgress = ({ value, max, size = 120, strokeWidth = 10, color = '#00564A' }: {
+const CircularProgress = ({ value, max, size = 120, strokeWidth = 10, color = '#006035' }: {
   value: number;
   max: number;
   size?: number;
@@ -82,48 +86,49 @@ const CircularProgress = ({ value, max, size = 120, strokeWidth = 10, color = '#
 };
 
 const EcoImpact = () => {
+  const navigate = useNavigate();
   const { state } = useApp();
   const stats = state.ecoStats;
 
   const impactCards = [
     {
       icon: Recycle,
-      label: 'Plastic Bottles Saved',
+      label: 'Botol Tersimpan',
       value: stats.plasticBottlesSaved,
       maxValue: 5000,
-      color: '#00564A',
-      bg: 'from-[#DFF5F1] to-white',
-      impact: `${(stats.plasticBottlesSaved * 30).toLocaleString()}g of plastic`
+      color: '#006035',
+      bg: 'from-[#E8F5EF] to-white',
+      impact: `${(stats.plasticBottlesSaved * 30).toLocaleString()}g plastik`
     },
     {
       icon: Leaf,
-      label: 'Plastic Waste Reduced',
+      label: 'Sampah Berkurang',
       value: stats.plasticWasteReduced,
       maxValue: 100,
       suffix: 'kg',
       color: '#90BE6D',
       bg: 'from-[#E8F5E0] to-white',
-      impact: 'Estimated reduction'
+      impact: 'Pengurangan diperkirakan'
     },
     {
       icon: Droplet,
-      label: 'Water Saved',
+      label: 'Air Tersimpan',
       value: stats.waterSaved,
       maxValue: 10000,
       suffix: 'L',
       color: '#00B4D8',
       bg: 'from-[#E0F7F7] to-white',
-      impact: 'Compared to manufacturing'
+      impact: 'Dibanding produksi baru'
     },
     {
       icon: TreePine,
-      label: 'Trees Equivalent',
+      label: 'Pohon Setara',
       value: stats.treesEquiv,
       maxValue: 20,
       suffix: '',
       color: '#10B981',
       bg: 'from-[#E6F5E9] to-white',
-      impact: 'CO2 absorption equivalent'
+      impact: 'CO2 yang diserap'
     }
   ];
 
@@ -135,9 +140,19 @@ const EcoImpact = () => {
       className="min-h-screen bg-gray-50 pb-nav"
     >
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#00564A] to-[#00796B] pt-12 pb-8 px-6 rounded-b-3xl">
-        <h1 className="text-xl font-bold text-white mb-2">Your Eco Impact</h1>
-        <p className="text-white/70 text-sm mb-6">See how your actions help the planet</p>
+      <div className="bg-gradient-to-br from-[#006035] to-[#008045] pt-12 pb-8 px-6 rounded-b-3xl">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate('/home')}
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+          >
+            <ArrowLeft size={20} className="text-white" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-white">Eco Impact</h1>
+            <p className="text-white/70 text-sm">Kontribusi Anda untuk bumi</p>
+          </div>
+        </div>
 
         {/* Main Stats Card */}
         <motion.div
@@ -147,11 +162,11 @@ const EcoImpact = () => {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-white/70 text-sm">Carbon Footprint Reduced</p>
+              <p className="text-white/70 text-sm">CO2 Berkurang</p>
               <p className="text-4xl font-bold text-white mt-1">
                 <AnimatedNumber value={stats.carbonFootprintReduced} suffix="kg" />
               </p>
-              <p className="text-white/60 text-xs mt-1">CO2 equivalent</p>
+              <p className="text-white/60 text-xs mt-1">Setara CO2</p>
             </div>
             <div className="relative">
               <CircularProgress
@@ -169,14 +184,14 @@ const EcoImpact = () => {
 
           <div className="flex items-center gap-2 text-white/80 text-sm">
             <TrendingUp size={16} />
-            <span>You're making a real difference!</span>
+            <span>Anda membuat perubahan nyata!</span>
           </div>
         </motion.div>
       </div>
 
       {/* Impact Cards Grid */}
       <div className="px-6 py-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Environmental Impact</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Dampak Lingkungan</h2>
 
         <div className="grid grid-cols-2 gap-3 mb-6">
           {impactCards.map((card, idx) => (
@@ -209,15 +224,15 @@ const EcoImpact = () => {
           ))}
         </div>
 
-        {/* Achievements */}
+        {/* Achievements Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Award size={20} className="text-[#F9C74F]" />
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Trophy size={20} className="text-yellow-500" />
               Achievements
-            </h3>
+            </h2>
             <span className="text-sm text-gray-500">
-              {achievements.filter(a => a.unlocked).length}/{achievements.length} unlocked
+              {achievements.filter(a => a.unlocked).length}/{achievements.length} terbuka
             </span>
           </div>
 
@@ -235,7 +250,7 @@ const EcoImpact = () => {
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${
-                      achievement.unlocked ? 'bg-[#DFF5F1]' : 'bg-gray-100'
+                      achievement.unlocked ? 'bg-[#E8F5EF]' : 'bg-gray-100'
                     }`}
                   >
                     {achievement.icon}
@@ -244,7 +259,7 @@ const EcoImpact = () => {
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-semibold text-gray-900">{achievement.title}</h4>
                       {achievement.unlocked && (
-                        <Sparkles size={14} className="text-[#F9C74F]" />
+                        <Sparkles size={14} className="text-yellow-500" />
                       )}
                     </div>
                     <p className="text-sm text-gray-500">{achievement.description}</p>
@@ -255,7 +270,7 @@ const EcoImpact = () => {
                           initial={{ width: 0 }}
                           animate={{ width: `${achievement.progress}%` }}
                           transition={{ delay: 0.5 + idx * 0.1, duration: 1 }}
-                          className="h-full bg-gradient-to-r from-[#00564A] to-[#00796B] rounded-full"
+                          className="h-full bg-gradient-to-r from-[#006035] to-[#008045] rounded-full"
                         />
                       </div>
                       <span className="text-xs text-gray-500 w-12 text-right">
@@ -270,18 +285,18 @@ const EcoImpact = () => {
         </div>
 
         {/* Eco Tips */}
-        <div className="bg-gradient-to-br from-[#DFF5F1] to-white rounded-2xl p-5">
+        <div className="bg-gradient-to-br from-[#E8F5EF] to-white rounded-2xl p-5">
           <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <Leaf size={18} className="text-[#00564A]" />
-            Did You Know?
+            <Leaf size={18} className="text-[#006035]" />
+            Tahukah Anda?
           </h3>
           <p className="text-gray-600 text-sm leading-relaxed">
-            One refill of a 500ml bottle saves approximately 30g of plastic from entering our environment.
-            That's equivalent to saving 150ml of water compared to manufacturing a new bottle.
+            Satu refill botol 500ml menghemat sekitar 30g plastik dari masuk ke lingkungan.
+            Itu setara dengan menghemat 150ml air dibandingkan memproduksi botol baru.
           </p>
           <div className="mt-4 pt-4 border-t border-green-100">
-            <p className="text-[#00564A] font-medium text-sm">
-              Your next refill could save another bottle! 🌱
+            <p className="text-[#006035] font-medium text-sm">
+              Refill selanjutnya bisa menyelamatkan botol lain! 🌱
             </p>
           </div>
         </div>
