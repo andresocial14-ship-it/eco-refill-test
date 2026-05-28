@@ -1,222 +1,376 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { machines, products } from '../data/mockData';
+import {
+  STATIC_MACHINES,
+  getProductByCategory,
+  getProductById,
+  getMachineById,
+  PAYMENT_METHODS,
+  VOLUME_CONFIG,
+  formatPrice,
+  calculateTotalPrice,
+  generateTransactionId,
+  StaticMachine,
+  StaticProduct
+} from '../data/staticRefillData';
 import {
   ArrowLeft,
   MapPin,
-  Clock,
   Droplet,
   ChevronRight,
   Check,
   AlertCircle,
-  Wine
+  CreditCard,
+  Smartphone,
+  Wifi
 } from 'lucide-react';
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(amount);
+// ============================================
+// REFILL ORDER STATE - Tracks entire flow
+// ============================================
+interface RefillOrder {
+  step: number;
+  selectedMachine: StaticMachine | null;
+  selectedCategory: string | null;
+  selectedProduct: StaticProduct | null;
+  selectedVolume: number;
+  selectedPaymentMethod: string | null;
+  totalPrice: number;
+  transactionId: string | null;
+}
+
+// Initialize with safe defaults - NEVER undefined
+const INITIAL_ORDER: RefillOrder = {
+  step: 1,
+  selectedMachine: null,
+  selectedCategory: null,
+  selectedProduct: null,
+  selectedVolume: VOLUME_CONFIG.DEFAULT, // Always has value
+  selectedPaymentMethod: null,
+  totalPrice: 0,
+  transactionId: null
 };
 
-// Step 1: Select Machine
+// ============================================
+// STEP 1: MACHINE SELECTION
+// ============================================
 const SelectMachine = () => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const handleSelect = (machineId: string) => {
-    setSelectedId(machineId);
+  const handleSelect = (machine: StaticMachine) => {
+    setSelectedId(machine.id);
+    // Smooth transition delay
     setTimeout(() => {
-      navigate(`/refill/product/${machineId}`);
+      navigate('/refill/category', { state: { machineId: machine.id } });
     }, 300);
   };
-
-  const availableMachines = machines.filter(m => m.status === 'Available');
-  const otherMachines = machines.filter(m => m.status !== 'Available');
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-white pb-8"
+      className="min-h-screen bg-gradient-to-b from-[#DFF5F1] to-white pb-24"
     >
-      <div className="px-6 pt-12 pb-4">
-        <div className="flex items-center gap-4 mb-6">
+      {/* Header */}
+      <div className="bg-[#00564A] pt-12 pb-6 px-6 rounded-b-3xl">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-4 mb-4"
+        >
           <button
             onClick={() => navigate('/home')}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
           >
-            <ArrowLeft size={20} className="text-gray-600" />
+            <ArrowLeft size={20} className="text-white" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Select Machine</h1>
-            <p className="text-sm text-gray-500">Choose a nearby EcoStation</p>
+            <h1 className="text-xl font-bold text-white">Select Machine</h1>
+            <p className="text-white/70 text-sm">Step 1 of 4</p>
           </div>
+        </motion.div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4].map((step) => (
+            <div
+              key={step}
+              className={`h-2 flex-1 rounded-full ${
+                step === 1 ? 'bg-[#00564A]' : 'bg-gray-200'
+              }`}
+            />
+          ))}
         </div>
       </div>
 
+      {/* Machine List */}
       <div className="px-6">
-        {/* Available Machines */}
-        <h3 className="text-sm font-semibold text-green-600 mb-3 flex items-center gap-2">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          Available Now
-        </h3>
-        <div className="space-y-3 mb-6">
-          {availableMachines.map((machine) => (
+        <h2 className="text-sm font-semibold text-gray-500 mb-3">Available Machines</h2>
+        <div className="space-y-4">
+          {STATIC_MACHINES.map((machine, idx) => (
             <motion.button
               key={machine.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleSelect(machine.id)}
-              className={`w-full bg-white rounded-2xl p-4 shadow-sm border-2 text-left transition-all ${
+              onClick={() => handleSelect(machine)}
+              className={`w-full bg-white rounded-2xl p-5 shadow-md border-2 text-left transition-all ${
                 selectedId === machine.id ? 'border-[#00564A]' : 'border-gray-100'
               }`}
             >
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00564A] to-[#00796B] flex items-center justify-center text-white font-bold">
-                  ES
+              <div className="flex items-start gap-4">
+                {/* Machine Icon */}
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#00564A] to-[#00796B] flex items-center justify-center text-white">
+                  <Droplet size={24} />
                 </div>
+
+                {/* Machine Info */}
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">{machine.name}</h4>
-                  <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">{machine.name}</h3>
+                  <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
                     <MapPin size={14} />
                     <span>{machine.location}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-2 text-sm">
-                    <span className="text-[#00564A] font-medium">{machine.distance}</span>
-                    <span className="text-gray-300">|</span>
-                    <span className="text-gray-500">{machine.products.length} products</span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 rounded-lg bg-green-100 text-green-700 text-xs font-semibold">
+                      {machine.status}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Categories: {machine.availableCategories.join(', ')}
+                    </span>
                   </div>
                 </div>
-                <ChevronRight size={20} className="text-gray-400" />
+
+                {/* Arrow */}
+                <ChevronRight size={24} className="text-gray-300" />
               </div>
             </motion.button>
           ))}
         </div>
-
-        {/* Other Machines */}
-        {otherMachines.length > 0 && (
-          <>
-            <h3 className="text-sm font-semibold text-gray-400 mb-3">Other Locations</h3>
-            <div className="space-y-3">
-              {otherMachines.map((machine) => (
-                <div
-                  key={machine.id}
-                  className="bg-gray-50 rounded-2xl p-4 opacity-60"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
-                      ES
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{machine.name}</h4>
-                      <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
-                        <MapPin size={14} />
-                        <span>{machine.location}</span>
-                      </div>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      machine.status === 'Busy' ? 'bg-yellow-100 text-yellow-700' :
-                      machine.status === 'Offline' ? 'bg-red-100 text-red-600' :
-                      'bg-gray-200 text-gray-600'
-                    }`}>
-                      {machine.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
       </div>
     </motion.div>
   );
 };
 
-// Step 2: Select Product
-const SelectProduct = () => {
+// ============================================
+// STEP 2: CATEGORY SELECTION
+// ============================================
+const SelectCategory = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const machineId = location.pathname.split('/').pop() || '';
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const machine = machines.find(m => m.id === machineId);
-  const availableProducts = products.filter(p =>
-    machine?.products.includes(p.id)
-  );
+  // Get machineId from navigation state with fallback
+  const machineId = (location.state as { machineId?: string })?.machineId || STATIC_MACHINES[0].id;
+  const machine = getMachineById(machineId);
 
-  const handleSelect = (productId: string) => {
-    setSelectedId(productId);
+  const handleSelectCategory = (category: string) => {
+    setSelectedCategory(category);
     setTimeout(() => {
-      navigate(`/refill/volume/${machineId}/${productId}`);
+      navigate('/refill/product', {
+        state: { machineId: machine.id, category: category }
+      });
     }, 300);
   };
-
-  if (!machine) {
-    return <div className="p-6">Machine not found</div>;
-  }
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-white pb-8"
+      className="min-h-screen bg-gradient-to-b from-[#DFF5F1] to-white pb-24"
     >
-      <div className="px-6 pt-12 pb-4">
-        <div className="flex items-center gap-4 mb-6">
+      {/* Header */}
+      <div className="bg-[#00564A] pt-12 pb-6 px-6 rounded-b-3xl">
+        <div className="flex items-center gap-4 mb-4">
           <button
             onClick={() => navigate('/refill')}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
           >
-            <ArrowLeft size={20} className="text-gray-600" />
+            <ArrowLeft size={20} className="text-white" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Select Product</h1>
-            <p className="text-sm text-gray-500">{machine.name}</p>
+            <h1 className="text-xl font-bold text-white">Select Category</h1>
+            <p className="text-white/70 text-sm">Step 2 of 4</p>
           </div>
         </div>
       </div>
 
+      {/* Progress Bar */}
+      <div className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4].map((step) => (
+            <div
+              key={step}
+              className={`h-2 flex-1 rounded-full ${
+                step <= 2 ? 'bg-[#00564A]' : 'bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Machine Badge */}
+      <div className="px-6 mb-4">
+        <div className="bg-[#DFF5F1] rounded-xl p-3 flex items-center gap-3">
+          <Droplet size={18} className="text-[#00564A]" />
+          <span className="text-sm text-gray-700 font-medium">{machine.name}</span>
+        </div>
+      </div>
+
+      {/* Categories */}
       <div className="px-6">
+        <h2 className="text-sm font-semibold text-gray-500 mb-3">Available Categories</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {machine.availableCategories.map((category, idx) => (
+            <motion.button
+              key={category}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleSelectCategory(category)}
+              className={`p-5 rounded-2xl text-center transition-all ${
+                selectedCategory === category
+                  ? 'bg-[#00564A] text-white shadow-lg'
+                  : 'bg-white shadow-md border border-gray-100'
+              }`}
+            >
+              <div className="text-3xl mb-2">
+                {category === 'Shampoo' ? '🧴' : category === 'Soap' ? '🧼' : category === 'Detergent' ? '🫧' : '💆'}
+              </div>
+              <p className="font-semibold">{category}</p>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================
+// STEP 3: PRODUCT SELECTION
+// ============================================
+const SelectProduct = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+
+  // Get state with fallbacks - NEVER undefined
+  const state = location.state as {
+    machineId?: string;
+    category?: string;
+  } | null;
+
+  const machineId = state?.machineId || STATIC_MACHINES[0].id;
+  const category = state?.category || 'Shampoo';
+
+  const machine = getMachineById(machineId);
+  const products = getProductByCategory(category);
+
+  const handleSelectProduct = (product: StaticProduct) => {
+    setSelectedProductId(product.id);
+    setTimeout(() => {
+      navigate('/refill/volume', {
+        state: {
+          machineId: machine.id,
+          productId: product.id
+        }
+      });
+    }, 300);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-gradient-to-b from-[#DFF5F1] to-white pb-24"
+    >
+      {/* Header */}
+      <div className="bg-[#00564A] pt-12 pb-6 px-6 rounded-b-3xl">
+        <div className="flex items-center gap-4 mb-4">
+          <button
+            onClick={() => navigate('/refill/category', { state: { machineId: machine.id } })}
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+          >
+            <ArrowLeft size={20} className="text-white" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-white">{category} Products</h1>
+            <p className="text-white/70 text-sm">Step 2 of 4</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4].map((step) => (
+            <div
+              key={step}
+              className={`h-2 flex-1 rounded-full ${
+                step <= 2 ? 'bg-[#00564A]' : 'bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Machine Badge */}
+      <div className="px-6 mb-4">
+        <div className="bg-[#DFF5F1] rounded-xl p-3 flex items-center gap-3">
+          <Droplet size={18} className="text-[#00564A]" />
+          <span className="text-sm text-gray-700 font-medium">{machine.name}</span>
+        </div>
+      </div>
+
+      {/* Products List - ALWAYS has data due to fallback */}
+      <div className="px-6">
+        <h2 className="text-sm font-semibold text-gray-500 mb-3">Select Product</h2>
         <div className="space-y-3">
-          {availableProducts.map((product, idx) => (
+          {products.map((product, idx) => (
             <motion.button
               key={product.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
+              transition={{ delay: idx * 0.1 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleSelect(product.id)}
-              className={`w-full bg-white rounded-2xl p-4 shadow-sm border-2 text-left transition-all ${
-                selectedId === product.id ? 'border-[#00564A]' : 'border-gray-100'
+              onClick={() => handleSelectProduct(product)}
+              className={`w-full bg-white rounded-2xl p-5 shadow-md border-2 text-left transition-all ${
+                selectedProductId === product.id ? 'border-[#00564A]' : 'border-gray-100'
               }`}
             >
               <div className="flex items-center gap-4">
+                {/* Product Icon */}
                 <div
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl"
                   style={{ backgroundColor: `${product.color}20` }}
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
                 >
                   {product.icon}
                 </div>
+
+                {/* Product Info */}
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">{product.name}</h4>
-                  <p className="text-sm text-gray-500">{product.category}</p>
-                  <p className="text-xs text-gray-400 mt-1">{product.description}</p>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">{product.name}</h3>
+                  <p className="text-sm text-gray-500 mb-2">{product.description}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#00564A] font-bold">{formatPrice(product.pricePerMl)}/ml</span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-[#00564A]">
-                    {formatCurrency(product.pricePerMl * 100)}
-                  </p>
-                  <p className="text-xs text-gray-400">per 100ml</p>
-                </div>
+
+                {/* Arrow */}
+                <ChevronRight size={24} className="text-gray-300" />
               </div>
             </motion.button>
           ))}
@@ -226,362 +380,541 @@ const SelectProduct = () => {
   );
 };
 
-// Step 3: Select Volume
+// ============================================
+// STEP 4: VOLUME SELECTION WITH SLIDER
+// ============================================
 const SelectVolume = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [volume, setVolume] = useState(300);
-  const { state } = useApp();
+  const [volume, setVolume] = useState(VOLUME_CONFIG.DEFAULT); // Always initialized
 
-  const pathParts = location.pathname.split('/');
-  const machineId = pathParts[4] || '';
-  const productId = pathParts[5] || '';
+  // Get state with fallbacks
+  const state = location.state as {
+    machineId?: string;
+    productId?: string;
+  } | null;
 
-  const machine = machines.find(m => m.id === machineId);
-  const product = products.find(p => p.id === productId);
+  const machineId = state?.machineId || STATIC_MACHINES[0].id;
+  const productId = state?.productId || getProductByCategory('Shampoo')[0].id;
 
+  const machine = getMachineById(machineId);
+  const product = getProductById(productId);
+
+  // SAFETY CHECK: If product is somehow null, show fallback
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="text-center">
+          <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Product Not Found</h2>
+          <p className="text-gray-500 mb-4">The selected product is not available.</p>
+          <button
+            onClick={() => navigate('/refill')}
+            className="bg-[#00564A] text-white px-6 py-3 rounded-xl font-medium"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate price in real-time
   const totalPrice = useMemo(() => {
-    return product ? product.pricePerMl * volume : 0;
-  }, [product, volume]);
+    return calculateTotalPrice(volume, product.pricePerMl);
+  }, [volume, product.pricePerMl]);
 
-  const handleContinue = () => {
-    navigate('/refill/confirm', {
+  const handleContinueToPayment = () => {
+    navigate('/refill/payment', {
       state: {
-        machineId,
-        machineName: machine?.name,
-        productId,
-        productName: product?.name,
-        volume,
-        totalPrice
+        machineId: machine.id,
+        productId: product.id,
+        volume: volume,
+        totalPrice: totalPrice
       }
     });
   };
 
-  if (!machine || !product) {
-    return <div className="p-6">Product not found</div>;
-  }
-
-  const volumeOptions = [100, 200, 300, 400, 500, 750, 1000];
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-white pb-8"
+      className="min-h-screen bg-gradient-to-b from-[#DFF5F1] to-white pb-24"
     >
-      <div className="px-6 pt-12 pb-4">
-        <div className="flex items-center gap-4 mb-6">
+      {/* Header */}
+      <div className="bg-[#00564A] pt-12 pb-6 px-6 rounded-b-3xl">
+        <div className="flex items-center gap-4 mb-4">
           <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+            onClick={() => navigate('/refill/product', { state: { machineId: machine.id } })}
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
           >
-            <ArrowLeft size={20} className="text-gray-600" />
+            <ArrowLeft size={20} className="text-white" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Select Volume</h1>
-            <p className="text-sm text-gray-500">{product.name}</p>
+            <h1 className="text-xl font-bold text-white">Select Volume</h1>
+            <p className="text-white/70 text-sm">Step 3 of 4</p>
           </div>
         </div>
       </div>
 
-      <div className="px-6">
-        {/* Product Card */}
-        <div className="bg-gradient-to-br from-[#DFF5F1] to-white rounded-2xl p-6 mb-6">
-          <div className="flex items-center gap-4 mb-4">
+      {/* Progress Bar */}
+      <div className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4].map((step) => (
             <div
+              key={step}
+              className={`h-2 flex-1 rounded-full ${
+                step <= 3 ? 'bg-[#00564A]' : 'bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Product Summary */}
+      <div className="px-6 mb-6">
+        <div className="bg-white rounded-2xl p-4 shadow-md">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
               style={{ backgroundColor: `${product.color}20` }}
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
             >
               {product.icon}
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{product.name}</h3>
+            <div className="flex-1">
+              <h3 className="font-bold text-gray-900">{product.name}</h3>
               <p className="text-sm text-gray-500">{machine.name}</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Volume Slider Section */}
+      <div className="px-6">
+        <div className="bg-white rounded-2xl p-6 shadow-md mb-6">
+          <h3 className="font-semibold text-gray-900 mb-4">Adjust Volume</h3>
 
           {/* Volume Display */}
-          <div className="bg-white/80 rounded-2xl p-4 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-500">Volume</span>
-              <span className="text-2xl font-bold text-[#00564A]">{volume}ml</span>
-            </div>
-
-            {/* Visual Bottle */}
-            <div className="relative h-32 bg-gray-100 rounded-xl overflow-hidden">
-              <motion.div
-                initial={false}
-                animate={{ height: `${Math.min((volume / 1000) * 100, 100)}%` }}
-                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#00564A] to-[#00796B]"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Wine size={40} className="text-gray-400 opacity-30" />
-              </div>
-            </div>
+          <div className="text-center mb-6">
+            <motion.p
+              key={volume}
+              initial={{ scale: 1.2 }}
+              animate={{ scale: 1 }}
+              className="text-5xl font-bold text-[#00564A]"
+            >
+              {volume}<span className="text-2xl text-gray-400 ml-1">ml</span>
+            </motion.p>
           </div>
 
-          {/* Volume Options */}
-          <div className="flex flex-wrap gap-2">
-            {volumeOptions.map((v) => (
-              <button
-                key={v}
-                onClick={() => setVolume(v)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  volume === v
-                    ? 'bg-[#00564A] text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+          {/* Visual Bottle Fill */}
+          <div className="relative h-36 bg-gray-100 rounded-2xl overflow-hidden mb-6">
+            <motion.div
+              initial={false}
+              animate={{ height: `${(volume / VOLUME_CONFIG.MAX) * 100}%` }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#00564A] to-[#00796B]"
+            />
+          </div>
+
+          {/* Slider */}
+          <div className="relative">
+            <input
+              type="range"
+              min={VOLUME_CONFIG.MIN}
+              max={VOLUME_CONFIG.MAX}
+              step={VOLUME_CONFIG.STEP}
+              value={volume}
+              onChange={(e) => setVolume(parseInt(e.target.value))}
+              className="w-full h-3 rounded-full appearance-none cursor-pointer bg-gray-200"
+              style={{
+                background: `linear-gradient(to right, #00564A 0%, #00564A ${((volume - VOLUME_CONFIG.MIN) / (VOLUME_CONFIG.MAX - VOLUME_CONFIG.MIN)) * 100}%, #E5E7EB ${((volume - VOLUME_CONFIG.MIN) / (VOLUME_CONFIG.MAX - VOLUME_CONFIG.MIN)) * 100}%, #E5E7EB 100%)`
+              }}
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-2">
+              <span>{VOLUME_CONFIG.MIN}ml</span>
+              <span>{VOLUME_CONFIG.MAX}ml</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Price Calculation */}
+        <div className="bg-[#DFF5F1] rounded-2xl p-5 mb-6">
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Price per ml</span>
+              <span className="font-medium">{formatPrice(product.pricePerMl)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Volume</span>
+              <span className="font-medium">{volume} ml</span>
+            </div>
+            <div className="border-t pt-2 mt-2 flex justify-between">
+              <span className="font-semibold text-gray-900">Total Price</span>
+              <motion.span
+                key={totalPrice}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                className="text-2xl font-bold text-[#00564A]"
               >
-                {v}ml
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Custom Slider */}
-        <div className="mb-6">
-          <label className="text-sm font-medium text-gray-600 mb-3 block">
-            Or adjust volume
-          </label>
-          <input
-            type="range"
-            min="100"
-            max="1000"
-            step="50"
-            value={volume}
-            onChange={(e) => setVolume(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#00564A]"
-          />
-        </div>
-
-        {/* Price Summary */}
-        <div className="bg-gray-50 rounded-2xl p-4 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-500">Total Price</p>
-              <p className="text-xs text-gray-400">{formatCurrency(product.pricePerMl)}/ml</p>
+                {formatPrice(totalPrice)}
+              </motion.span>
             </div>
-            <p className="text-2xl font-bold text-[#00564A]">{formatCurrency(totalPrice)}</p>
           </div>
-
-          {state.walletBalance < totalPrice && (
-            <div className="flex items-center gap-2 mt-3 p-3 bg-yellow-50 rounded-xl">
-              <AlertCircle size={16} className="text-yellow-600" />
-              <p className="text-sm text-yellow-700">Insufficient balance. Please top up your wallet.</p>
-            </div>
-          )}
         </div>
 
         {/* Continue Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={handleContinue}
-          className="w-full bg-[#00564A] text-white py-4 rounded-2xl font-semibold text-lg shadow-lg shadow-[#00564A]/20"
+          onClick={handleContinueToPayment}
+          className="w-full bg-[#00564A] text-white py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-2 shadow-lg"
         >
-          Continue
+          Continue to Payment
+          <ChevronRight size={20} />
         </motion.button>
       </div>
     </motion.div>
   );
 };
 
-// Step 4: Confirm Order
-const ConfirmOrder = () => {
+// ============================================
+// STEP 5: PAYMENT SELECTION
+// ============================================
+const SelectPayment = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state, dispatch } = useApp();
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const {
-    machineId,
-    machineName,
-    productId,
-    productName,
-    volume,
-    totalPrice
-  } = (location.state as {
-    machineId: string;
-    machineName: string;
-    productId: string;
-    productName: string;
-    volume: number;
-    totalPrice: number;
-  }) || {};
+  // Get state with fallbacks
+  const state = location.state as {
+    machineId?: string;
+    productId?: string;
+    volume?: number;
+    totalPrice?: number;
+  } | null;
+
+  const machineId = state?.machineId || STATIC_MACHINES[0].id;
+  const productId = state?.productId || getProductByCategory('Shampoo')[0].id;
+  const volume = state?.volume || VOLUME_CONFIG.DEFAULT;
+  const totalPrice = state?.totalPrice || 0;
+
+  const machine = getMachineById(machineId);
+  const product = getProductById(productId);
+
+  // SAFETY CHECK
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="text-center">
+          <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Payment Error</h2>
+          <p className="text-gray-500 mb-4">Unable to process payment.</p>
+          <button
+            onClick={() => navigate('/refill')}
+            className="bg-[#00564A] text-white px-6 py-3 rounded-xl font-medium"
+          >
+            Start Over
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handlePayment = async () => {
-    if (!state.walletBalance || state.walletBalance < totalPrice) {
-      return;
-    }
+    if (!selectedPayment) return;
 
     setIsProcessing(true);
 
     // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Deduct from wallet
-    dispatch({ type: 'DEDUCT_WALLET', payload: totalPrice });
-
-    // Create active refill transaction
-    const transactionId = `TXN${Date.now()}`;
-    dispatch({
-      type: 'SET_ACTIVE_REFILL',
-      payload: {
-        transactionId,
-        machineId,
-        machineName,
-        productId,
-        productName,
-        volume,
-        totalPrice,
-        createdAt: new Date()
-      }
-    });
+    const transactionId = generateTransactionId();
 
     setIsProcessing(false);
-    navigate('/qr-transaction');
+    navigate('/refill/qr', {
+      state: {
+        machineId: machine.id,
+        productId: product.id,
+        volume,
+        totalPrice,
+        transactionId,
+        paymentMethod: selectedPayment
+      }
+    });
   };
-
-  if (!machineName || !productName) {
-    return <div className="p-6">Order information missing</div>;
-  }
-
-  const product = products.find(p => p.id === productId);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gray-50 pb-8"
+      className="min-h-screen bg-gradient-to-b from-[#DFF5F1] to-white pb-24"
     >
-      <div className="px-6 pt-12 pb-4">
-        <div className="flex items-center gap-4 mb-6">
+      {/* Header */}
+      <div className="bg-[#00564A] pt-12 pb-6 px-6 rounded-b-3xl">
+        <div className="flex items-center gap-4 mb-4">
           <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm"
+            onClick={() => navigate('/refill/volume', {
+              state: { machineId: machine.id, productId: product.id }
+            })}
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
           >
-            <ArrowLeft size={20} className="text-gray-600" />
+            <ArrowLeft size={20} className="text-white" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Confirm Order</h1>
-            <p className="text-sm text-gray-500">Review your refill details</p>
+            <h1 className="text-xl font-bold text-white">Select Payment</h1>
+            <p className="text-white/70 text-sm">Step 4 of 4</p>
           </div>
         </div>
       </div>
 
-      <div className="px-6">
-        {/* Order Summary Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm mb-4">
-          <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
+      {/* Progress Bar */}
+      <div className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4].map((step) => (
             <div
-              style={{ backgroundColor: `${product?.color}20` }}
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+              key={step}
+              className={`h-2 flex-1 rounded-full bg-[#00564A]`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Order Summary */}
+      <div className="px-6 mb-6">
+        <div className="bg-white rounded-2xl p-4 shadow-md">
+          <div className="flex items-center gap-4 mb-3 pb-3 border-b">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+              style={{ backgroundColor: `${product.color}20` }}
             >
-              {product?.icon}
+              {product.icon}
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{productName}</h3>
-              <p className="text-sm text-gray-500">{volume}ml</p>
+            <div className="flex-1">
+              <h3 className="font-bold text-gray-900">{product.name}</h3>
+              <p className="text-sm text-gray-500">{volume}ml - {machine.name}</p>
             </div>
           </div>
-
-          <div className="pt-4 space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Machine</span>
-              <span className="font-medium text-gray-900">{machineName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Volume</span>
-              <span className="font-medium text-gray-900">{volume}ml</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Machine ID</span>
-              <span className="font-mono text-sm text-gray-600">{machineId}</span>
-            </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Total</span>
+            <span className="text-2xl font-bold text-[#00564A]">{formatPrice(totalPrice)}</span>
           </div>
         </div>
+      </div>
 
-        {/* Payment Details */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm mb-4">
-          <h3 className="font-semibold text-gray-900 mb-4">Payment Details</h3>
-
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Subtotal</span>
-              <span className="text-gray-900">{formatCurrency(totalPrice)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Eco Reward Points</span>
-              <span className="text-green-600">+{Math.floor(totalPrice / 100)} pts</span>
-            </div>
-            <div className="border-t border-gray-100 pt-3 flex justify-between">
-              <span className="font-semibold text-gray-900">Total</span>
-              <span className="font-bold text-xl text-[#00564A]">{formatCurrency(totalPrice)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Wallet Balance */}
-        <div className="bg-gradient-to-br from-[#00564A] to-[#00796B] rounded-3xl p-5 text-white mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/70 text-sm">Pay with Wallet</p>
-              <p className="text-2xl font-bold mt-1">{formatCurrency(state.walletBalance)}</p>
-            </div>
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Droplet size={24} />
-            </div>
-          </div>
+      {/* Payment Methods */}
+      <div className="px-6">
+        <h2 className="text-sm font-semibold text-gray-500 mb-3">Payment Method</h2>
+        <div className="space-y-3 mb-6">
+          {PAYMENT_METHODS.map((method, idx) => (
+            <motion.button
+              key={method.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSelectedPayment(method.id)}
+              className={`w-full bg-white rounded-2xl p-4 shadow-md border-2 text-left transition-all ${
+                selectedPayment === method.id ? 'border-[#00564A]' : 'border-gray-100'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#DFF5F1] flex items-center justify-center text-2xl">
+                  {method.icon}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900">{method.name}</h3>
+                  <p className="text-sm text-gray-500">{method.description}</p>
+                </div>
+                {selectedPayment === method.id && (
+                  <div className="w-6 h-6 rounded-full bg-[#00564A] flex items-center justify-center">
+                    <Check size={14} className="text-white" />
+                  </div>
+                )}
+              </div>
+            </motion.button>
+          ))}
         </div>
 
         {/* Pay Button */}
         <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: selectedPayment ? 1.02 : 1 }}
+          whileTap={{ scale: selectedPayment ? 0.98 : 1 }}
           onClick={handlePayment}
-          disabled={isProcessing || state.walletBalance < totalPrice}
-          className="w-full bg-[#00564A] text-white py-4 rounded-2xl font-semibold text-lg shadow-lg shadow-[#00564A]/20 disabled:opacity-50 flex items-center justify-center gap-2"
+          disabled={!selectedPayment || isProcessing}
+          className={`w-full py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-2 shadow-lg ${
+            selectedPayment
+              ? 'bg-[#00564A] text-white'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
         >
           {isProcessing ? (
             <>
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Processing...
             </>
-          ) : state.walletBalance < totalPrice ? (
-            'Insufficient Balance'
           ) : (
             <>
-              <Check size={20} />
-              Pay {formatCurrency(totalPrice)}
+              <CreditCard size={20} />
+              Pay {formatPrice(totalPrice)}
             </>
           )}
         </motion.button>
-
-        {state.walletBalance < totalPrice && (
-          <button
-            onClick={() => navigate('/wallet')}
-            className="w-full mt-3 text-[#00564A] font-medium text-center"
-          >
-            Top up my wallet
-          </button>
-        )}
       </div>
     </motion.div>
   );
 };
 
-// Main Refill Flow Router
+// ============================================
+// STEP 6: QR CODE DISPLAY
+// ============================================
+const ShowQR = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get state with fallbacks
+  const state = location.state as {
+    machineId?: string;
+    productId?: string;
+    volume?: number;
+    totalPrice?: number;
+    transactionId?: string;
+    paymentMethod?: string;
+  } | null;
+
+  const machineId = state?.machineId || STATIC_MACHINES[0].id;
+  const productId = state?.productId || getProductByCategory('Shampoo')[0].id;
+  const volume = state?.volume || VOLUME_CONFIG.DEFAULT;
+  const totalPrice = state?.totalPrice || 0;
+  const transactionId = state?.transactionId || generateTransactionId();
+  const paymentMethod = state?.paymentMethod || 'QRIS';
+
+  const machine = getMachineById(machineId);
+  const product = getProductById(productId);
+
+  // SAFETY CHECK
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="text-center">
+          <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Transaction Error</h2>
+          <button
+            onClick={() => navigate('/home')}
+            className="bg-[#00564A] text-white px-6 py-3 rounded-xl font-medium"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-gradient-to-b from-[#00564A] to-[#00796B] flex flex-col"
+    >
+      {/* Header */}
+      <div className="pt-12 px-6 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <Wifi size={16} className="text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-white">Payment Success</h1>
+          </div>
+        </div>
+      </div>
+
+      {/* QR Card */}
+      <div className="flex-1 px-6 mb-6">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring' }}
+          className="bg-white rounded-3xl p-6 shadow-2xl"
+        >
+          {/* QR Code Placeholder */}
+          <div className="bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl p-8 mb-6 flex items-center justify-center">
+            <div className="w-48 h-48 bg-white rounded-xl shadow-inner flex items-center justify-center border-2 border-dashed border-gray-300">
+              <div className="text-center">
+                <div className="w-32 h-32 bg-gray-200 rounded mx-auto mb-3 flex items-center justify-center">
+                  <div className="grid grid-cols-5 gap-1">
+                    {[...Array(25)].map((_, i) => (
+                      <div key={i} className="w-4 h-4 bg-gray-800 rounded-sm" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Scan QR at Machine</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Transaction ID */}
+          <div className="text-center mb-4 pb-4 border-b">
+            <p className="text-xs text-gray-500 mb-1">Transaction ID</p>
+            <p className="font-mono font-bold text-gray-900 text-sm">{transactionId}</p>
+          </div>
+
+          {/* Order Details */}
+          <div className="space-y-3 mb-6">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Machine</span>
+              <span className="font-medium text-gray-900">{machine.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Product</span>
+              <span className="font-medium text-gray-900">{product.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Volume</span>
+              <span className="font-medium text-gray-900">{volume} ml</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Payment</span>
+              <span className="font-medium text-gray-900">{paymentMethod}</span>
+            </div>
+            <div className="pt-3 border-t flex justify-between">
+              <span className="font-semibold text-gray-900">Total</span>
+              <span className="font-bold text-xl text-[#00564A]">{formatPrice(totalPrice)}</span>
+            </div>
+          </div>
+
+          {/* Done Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate('/home')}
+            className="w-full bg-[#00564A] text-white py-4 rounded-xl font-semibold text-lg"
+          >
+            Done
+          </motion.button>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================
+// MAIN ROUTER COMPONENT
+// ============================================
 const RefillFlow = () => {
   return (
     <div className="min-h-screen bg-white">
       <AnimatePresence mode="wait">
         <Routes>
           <Route index element={<SelectMachine />} />
-          <Route path="product/:machineId" element={<SelectProduct />} />
-          <Route path="volume/:prefix/:machineId/:productId" element={<SelectVolume />} />
-          <Route path="confirm" element={<ConfirmOrder />} />
+          <Route path="category" element={<SelectCategory />} />
+          <Route path="product" element={<SelectProduct />} />
+          <Route path="volume" element={<SelectVolume />} />
+          <Route path="payment" element={<SelectPayment />} />
+          <Route path="qr" element={<ShowQR />} />
         </Routes>
       </AnimatePresence>
     </div>
