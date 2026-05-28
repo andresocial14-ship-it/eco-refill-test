@@ -59,12 +59,6 @@ const Rewards = () => {
       {/* Header */}
       <div className="bg-gradient-to-br from-[#006035] to-[#008045] pt-12 pb-6 px-6 rounded-b-3xl">
         <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={() => navigate('/home')}
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
-          >
-            <ArrowLeft size={20} className="text-white" />
-          </button>
           <h1 className="text-xl font-bold text-white">Rewards</h1>
         </div>
 

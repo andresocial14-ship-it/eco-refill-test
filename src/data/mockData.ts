@@ -198,9 +198,9 @@ export const initialTransactions: Transaction[] = [
     type: 'refill',
     amount: 25000,
     date: '2024-01-15T10:30:00',
-    description: 'Refill Hand Soap 500ml',
+    description: 'Refill Sabun Mandi 500ml',
     machine: 'EcoStation Central Park',
-    product: 'Hand Soap',
+    product: 'Sabun Mandi',
     volume: 500
   },
   {
@@ -215,9 +215,9 @@ export const initialTransactions: Transaction[] = [
     type: 'refill',
     amount: 40000,
     date: '2024-01-12T09:15:00',
-    description: 'Refill Shampoo 500ml',
+    description: 'Refill Sampo 500ml',
     machine: 'EcoStation Green Tower',
-    product: 'Shampoo',
+    product: 'Sampo',
     volume: 500
   },
   {
@@ -225,23 +225,23 @@ export const initialTransactions: Transaction[] = [
     type: 'deposit',
     amount: 15000,
     date: '2024-01-10T16:45:00',
-    description: 'New Bottle Deposit'
+    description: 'Deposit Botol Baru'
   },
   {
     id: 'TXN005',
     type: 'reward',
     amount: 0,
     date: '2024-01-08T11:00:00',
-    description: 'Redeemed Free Refill Voucher'
+    description: 'Redeem Voucher Gratis'
   },
   {
     id: 'TXN006',
     type: 'refill',
     amount: 18000,
     date: '2024-01-05T13:30:00',
-    description: 'Refill Detergent 450ml',
+    description: 'Refill Deterjen 450ml',
     machine: 'EcoStation Sunrise Plaza',
-    product: 'Detergent',
+    product: 'Deterjen',
     volume: 450
   },
   {
@@ -249,7 +249,7 @@ export const initialTransactions: Transaction[] = [
     type: 'refund',
     amount: 15000,
     date: '2024-01-03T10:00:00',
-    description: 'Bottle Return Refund'
+    description: 'Refund Deposit Botol'
   }
 ];
 

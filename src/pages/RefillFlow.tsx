@@ -15,7 +15,8 @@ import {
   Smartphone,
   CreditCard,
   Building2,
-  Wallet as WalletIcon
+  Wallet as WalletIcon,
+  X
 } from 'lucide-react';
 
 const paymentMethods = [
@@ -30,10 +31,16 @@ const paymentMethods = [
 const ContainerOption = () => {
   const navigate = useNavigate();
   const { dispatch } = useApp();
+  const [showDepositModal, setShowDepositModal] = useState(false);
 
   const handleSelect = (type: 'own' | 'deposit') => {
     dispatch({ type: 'SET_CONTAINER', payload: type });
     navigate('/refill/machine');
+  };
+
+  const handleDepositChoice = (choice: 'existing' | 'new') => {
+    dispatch({ type: 'SET_CONTAINER', payload: 'deposit' });
+    navigate('/refill/machine', { state: { depositType: choice } });
   };
 
   return (
@@ -86,7 +93,7 @@ const ContainerOption = () => {
           transition={{ delay: 0.2 }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => handleSelect('deposit')}
+          onClick={() => setShowDepositModal(true)}
           className="w-full bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100 hover:border-[#006035] transition-all text-left"
         >
           <div className="flex items-start gap-4">
@@ -110,6 +117,73 @@ const ContainerOption = () => {
           </p>
         </div>
       </div>
+
+      {/* Deposit Choice Modal */}
+      <AnimatePresence>
+        {showDepositModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[9999] flex items-end justify-center"
+            onClick={() => setShowDepositModal(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Pilih Opsi Deposit</h2>
+                <button
+                  onClick={() => setShowDepositModal(false)}
+                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+                >
+                  <X size={18} className="text-gray-600" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleDepositChoice('existing')}
+                  className="w-full bg-white rounded-2xl p-4 shadow-sm border-2 border-gray-100 hover:border-[#006035] text-left transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-[#E8F5EF] flex items-center justify-center">
+                      <Droplet size={20} className="text-[#006035]" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Gunakan Botol yang Sudah Ada</h4>
+                      <p className="text-xs text-gray-500 mt-1">Gunakan botol deposit Anda yang aktif</p>
+                    </div>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleDepositChoice('new')}
+                  className="w-full bg-white rounded-2xl p-4 shadow-sm border-2 border-[#006035] text-left transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-[#006035] flex items-center justify-center">
+                      <Check size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Daftar/Tawarkan Deposit Botol Baru</h4>
+                      <p className="text-xs text-gray-500 mt-1">Sewa botol baru sekarang</p>
+                    </div>
+                  </div>
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
@@ -261,7 +335,7 @@ const SelectProduct = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-white pb-8"
+      className="min-h-screen bg-white pb-28"
     >
       <div className="px-6 pt-12 pb-4">
         <div className="flex items-center gap-4 mb-6">
@@ -531,13 +605,6 @@ const SelectVolume = () => {
             </div>
             <p className="text-2xl font-bold text-[#006035]">{formatRupiah(totalPrice)}</p>
           </div>
-
-          {state.walletBalance < totalPrice && (
-            <div className="flex items-center gap-2 mt-3 p-3 bg-yellow-50 rounded-xl">
-              <AlertCircle size={16} className="text-yellow-600" />
-              <p className="text-sm text-yellow-700">Saldo tidak mencukupi. Silakan top up dompet Anda.</p>
-            </div>
-          )}
         </div>
 
         {/* Continue Button */}
@@ -696,40 +763,54 @@ const ConfirmOrder = () => {
           <div className="space-y-3">
             {paymentMethods.map((method) => {
               const isWallet = method.id === 'wallet';
-              const disabled = isWallet && state.walletBalance < totalPrice;
+              const isInsufficient = isWallet && state.walletBalance < totalPrice;
 
               return (
-                <motion.button
-                  key={method.id}
-                  whileHover={!disabled ? { scale: 1.01 } : {}}
-                  whileTap={!disabled ? { scale: 0.99 } : {}}
-                  onClick={() => !disabled && setSelectedPayment(method.id)}
-                  className={`w-full p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${
-                    selectedPayment === method.id
-                      ? 'border-[#006035] bg-[#E8F5EF]'
-                      : disabled ? 'border-gray-100 opacity-50' : 'border-gray-100'
-                  }`}
-                >
-                  <div
-                    style={{ backgroundColor: `${method.color}20` }}
-                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                <div key={method.id} className="space-y-2">
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => setSelectedPayment(method.id)}
+                    className={`w-full p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${
+                      selectedPayment === method.id
+                        ? 'border-[#006035] bg-[#E8F5EF]'
+                        : 'border-gray-100'
+                    }`}
                   >
-                    <method.icon size={24} style={{ color: method.color }} />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium text-gray-900">{method.name}</p>
-                    {isWallet && (
-                      <p className={`text-xs ${disabled ? 'text-red-500' : 'text-gray-500'}`}>
-                        Saldo: {formatRupiah(state.walletBalance)}
-                      </p>
-                    )}
-                  </div>
-                  {selectedPayment === method.id && (
-                    <div className="w-6 h-6 rounded-full bg-[#006035] flex items-center justify-center">
-                      <Check size={14} className="text-white" />
+                    <div
+                      style={{ backgroundColor: `${method.color}20` }}
+                      className="w-12 h-12 rounded-xl flex items-center justify-center"
+                    >
+                      <method.icon size={24} style={{ color: method.color }} />
                     </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium text-gray-900">{method.name}</p>
+                      {isWallet && (
+                        <p className={`text-xs ${isInsufficient ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+                          Saldo: {formatRupiah(state.walletBalance)}
+                        </p>
+                      )}
+                    </div>
+                    {selectedPayment === method.id && (
+                      <div className="w-6 h-6 rounded-full bg-[#006035] flex items-center justify-center">
+                        <Check size={14} className="text-white" />
+                      </div>
+                    )}
+                  </motion.button>
+                  
+                  {selectedPayment === method.id && isInsufficient && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100"
+                    >
+                      <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
+                      <p className="text-xs text-red-600">
+                        Saldo Eco Wallet tidak mencukupi untuk transaksi ini. Silakan top up atau pilih metode lain.
+                      </p>
+                    </motion.div>
                   )}
-                </motion.button>
+                </div>
               );
             })}
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +11,9 @@ import {
   CheckCircle,
   Plus,
   X,
-  ArrowLeft
+  ArrowLeft,
+  QrCode,
+  Scan
 } from 'lucide-react';
 
 const formatCurrency = (amount: number) => {
@@ -36,86 +38,96 @@ const Bottles = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedBottle, setSelectedBottle] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [qrVerification, setQrVerification] = useState<{
+    type: 'purchase' | 'return';
+    status: 'pending' | 'success';
+    bottle?: typeof bottleTypes[0];
+    bottleId?: string;
+  } | null>(null);
 
-  const activeBottles = state.bottles.filter(b => b.status === 'Active');
-  const returnedBottles = state.bottles.filter(b => b.status !== 'Active');
+  useEffect(() => {
+    if (qrVerification?.status === 'pending') {
+      const timer = setTimeout(() => {
+        executeVerification();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [qrVerification?.status]);
+
+  const activeBottles = state.bottles.filter(b => b.status === 'Aktif');
+  const returnedBottles = state.bottles.filter(b => b.status !== 'Aktif');
 
   const totalDeposit = state.bottles
-    .filter(b => b.status === 'Active')
+    .filter(b => b.status === 'Aktif')
     .reduce((sum, b) => sum + b.depositAmount, 0);
 
-  const handleReturnBottle = async () => {
+  const handleReturnBottle = () => {
     if (!selectedBottle) return;
+    setShowReturnModal(false);
+    setQrVerification({ type: 'return', status: 'pending', bottleId: selectedBottle });
+  };
 
+  const handlePurchaseBottle = (bottle: typeof bottleTypes[0]) => {
+    if (state.walletBalance < bottle.deposit) {
+      return;
+    }
+    setShowPurchaseModal(false);
+    setQrVerification({ type: 'purchase', status: 'pending', bottle });
+  };
+
+  const executeVerification = async () => {
+    if (!qrVerification) return;
+    
     setIsProcessing(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const bottle = state.bottles.find(b => b.id === selectedBottle);
-    if (bottle) {
-      // Update bottle status
-      dispatch({
-        type: 'UPDATE_BOTTLE',
-        payload: { id: selectedBottle, updates: { status: 'Returned' as const } }
-      });
-
-      // Refund deposit
-      dispatch({ type: 'TOP_UP_WALLET', payload: bottle.depositAmount });
-
-      // Add transaction
+    if (qrVerification.type === 'return' && qrVerification.bottleId) {
+      const bottle = state.bottles.find(b => b.id === qrVerification.bottleId);
+      if (bottle) {
+        dispatch({
+          type: 'UPDATE_BOTTLE',
+          payload: { id: qrVerification.bottleId, updates: { status: 'Dikembalikan' as any } }
+        });
+        dispatch({ type: 'TOP_UP_WALLET', payload: bottle.depositAmount });
+        dispatch({
+          type: 'ADD_TRANSACTION',
+          payload: {
+            id: `TXN${Date.now()}`,
+            type: 'refund',
+            amount: bottle.depositAmount,
+            date: new Date().toISOString(),
+            description: `Refund Deposit Botol (${bottle.type} ${bottle.size})`
+          }
+        });
+      }
+      setSelectedBottle(null);
+    } else if (qrVerification.type === 'purchase' && qrVerification.bottle) {
+      const bottle = qrVerification.bottle;
+      dispatch({ type: 'DEDUCT_WALLET', payload: bottle.deposit });
+      const newBottle = {
+        id: `BTL${Date.now()}`,
+        type: bottle.type,
+        size: bottle.size,
+        status: 'Aktif' as any,
+        depositAmount: bottle.deposit,
+        purchaseDate: new Date().toISOString().split('T')[0],
+        refillsCount: 0
+      };
+      dispatch({ type: 'ADD_BOTTLE', payload: newBottle });
       dispatch({
         type: 'ADD_TRANSACTION',
         payload: {
           id: `TXN${Date.now()}`,
-          type: 'refund',
-          amount: bottle.depositAmount,
+          type: 'deposit',
+          amount: bottle.deposit,
           date: new Date().toISOString(),
-          description: `Bottle Return Refund (${bottle.type} ${bottle.size})`
+          description: `Deposit Botol Baru (${bottle.type} ${bottle.size})`
         }
       });
     }
 
     setIsProcessing(false);
-    setShowReturnModal(false);
-    setSelectedBottle(null);
-  };
-
-  const handlePurchaseBottle = async (bottle: typeof bottleTypes[0]) => {
-    if (state.walletBalance < bottle.deposit) {
-      return;
-    }
-
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Deduct from wallet
-    dispatch({ type: 'DEDUCT_WALLET', payload: bottle.deposit });
-
-    // Add bottle
-    const newBottle = {
-      id: `BTL${Date.now()}`,
-      type: bottle.type,
-      size: bottle.size,
-      status: 'Active' as const,
-      depositAmount: bottle.deposit,
-      purchaseDate: new Date().toISOString().split('T')[0],
-      refillsCount: 0
-    };
-    dispatch({ type: 'ADD_BOTTLE', payload: newBottle });
-
-    // Add transaction
-    dispatch({
-      type: 'ADD_TRANSACTION',
-      payload: {
-        id: `TXN${Date.now()}`,
-        type: 'deposit',
-        amount: bottle.deposit,
-        date: new Date().toISOString(),
-        description: `New ${bottle.type} Bottle Deposit (${bottle.size})`
-      }
-    });
-
-    setIsProcessing(false);
-    setShowPurchaseModal(false);
+    setQrVerification(prev => prev ? { ...prev, status: 'success' } : null);
   };
 
   const getStatusColor = (status: string) => {
@@ -304,7 +316,7 @@ const Bottles = () => {
               className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Return Bottle</h2>
+                <h2 className="text-xl font-bold text-gray-900">Pengembalian Botol</h2>
                 <button
                   onClick={() => setShowReturnModal(false)}
                   className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
@@ -314,7 +326,7 @@ const Bottles = () => {
               </div>
 
               <p className="text-gray-500 text-sm mb-4">
-                Select the bottle you want to return. Your deposit will be refunded to your wallet.
+                Pilih botol yang ingin dikembalikan. Deposit Anda akan dikembalikan ke dompet Anda.
               </p>
 
               <div className="space-y-3 mb-6">
@@ -356,7 +368,7 @@ const Bottles = () => {
                 ) : (
                   <>
                     <RotateCcw size={20} />
-                    Return & Get Refund
+                    Konfirmasi
                   </>
                 )}
               </motion.button>
@@ -437,6 +449,161 @@ const Bottles = () => {
                 Wallet: {formatCurrency(state.walletBalance)}
               </p>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QR Verification Modal */}
+      <AnimatePresence>
+        {qrVerification && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center p-6"
+          >
+            {qrVerification.status === 'pending' && (
+              <>
+                <button
+                  onClick={() => setQrVerification(null)}
+                  className="absolute top-12 left-6 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+                >
+                  <X size={20} className="text-gray-600" />
+                </button>
+                
+                <div className="text-center w-full max-w-sm">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Verifikasi Transaksi</h2>
+                  <p className="text-gray-500 mb-8">
+                    Pindai QR code ini pada sensor mesin Eco Vending Machine untuk memverifikasi deposit/pengembalian botol Anda
+                  </p>
+
+                  <div className="bg-white p-8 rounded-3xl shadow-xl shadow-gray-200/50 mb-8 aspect-square relative flex items-center justify-center border-4 border-[#006035]">
+                    {/* Dummy QR Code Pattern */}
+                    <div className="absolute inset-4 grid grid-cols-5 gap-2 opacity-20">
+                      {Array.from({ length: 25 }).map((_, i) => (
+                        <div key={i} className={`bg-[#006035] ${i % 2 === 0 ? 'rounded-tl-lg rounded-br-lg' : 'rounded-tr-lg rounded-bl-lg'}`} />
+                      ))}
+                    </div>
+                    <QrCode size={120} className="text-[#006035] relative z-10" />
+                    
+                    {/* Scanning overlay animation */}
+                    <motion.div
+                      animate={{ top: ['0%', '100%', '0%'] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                      className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#006035] to-transparent z-20 opacity-50"
+                    />
+                  </div>
+
+                  {/* Automated Scanner Indicator */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-gray-50 rounded-2xl p-4 mb-8"
+                  >
+                    <div className="flex items-center gap-3 justify-center text-[#006035] font-medium">
+                      <div className="w-5 h-5 border-2 border-[#006035]/30 border-t-[#006035] rounded-full animate-spin" />
+                      <span>Mensimulasikan Pemindaian...</span>
+                    </div>
+                  </motion.div>
+                </div>
+              </>
+            )}
+
+            {qrVerification.status === 'success' && (
+              <div className="text-center w-full max-w-sm relative z-10">
+                {/* Confetti Particles Background */}
+                <div className="absolute inset-0 pointer-events-none -z-10">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 1, y: 0, x: 0, scale: 0 }}
+                      animate={{ 
+                        opacity: 0, 
+                        y: -200 - Math.random() * 200, 
+                        x: (Math.random() - 0.5) * 300, 
+                        scale: Math.random() * 1.5 + 0.5,
+                        rotate: Math.random() * 360
+                      }}
+                      transition={{ duration: 2 + Math.random(), ease: "easeOut" }}
+                      className={`absolute top-1/2 left-1/2 w-3 h-3 ${i % 2 === 0 ? 'bg-[#006035]' : 'bg-[#90BE6D]'} rounded-sm`}
+                    />
+                  ))}
+                </div>
+
+                <motion.div
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+                  className="w-32 h-32 mx-auto mb-6 bg-[#E8F5EF] rounded-full flex items-center justify-center shadow-xl"
+                >
+                  <CheckCircle size={64} className="text-[#006035]" />
+                </motion.div>
+
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-3xl font-bold text-gray-900 mb-2"
+                >
+                  {qrVerification.type === 'purchase' ? 'Deposit Berhasil!' : 'Pengembalian Berhasil!'}
+                </motion.h2>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-gray-500 mb-8"
+                >
+                  {qrVerification.type === 'purchase' ? 'Botol baru Anda siap digunakan.' : 'Deposit botol telah dikembalikan ke dompet Anda.'}
+                </motion.p>
+
+                {/* Animated Eco Metrics */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-white rounded-2xl p-6 shadow-xl shadow-gray-200/50 mb-8 border border-gray-100"
+                >
+                  <div className="flex justify-around items-center">
+                    <div className="text-center">
+                      <p className="text-gray-500 text-sm mb-2">Eco Points</p>
+                      <motion.p 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="text-2xl font-bold text-[#90BE6D]"
+                      >
+                        +100 Points
+                      </motion.p>
+                    </div>
+                    <div className="w-px h-12 bg-gray-200" />
+                    <div className="text-center">
+                      <p className="text-gray-500 text-sm mb-2">Botol Plastik Terselamatkan</p>
+                      <motion.p 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        className="text-2xl font-bold text-[#006035]"
+                      >
+                        +1 Botol
+                      </motion.p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setQrVerification(null)}
+                  className="w-full bg-[#006035] text-white py-4 rounded-2xl font-semibold text-lg shadow-lg shadow-[#006035]/20"
+                >
+                  Selesai
+                </motion.button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

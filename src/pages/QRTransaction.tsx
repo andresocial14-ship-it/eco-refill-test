@@ -11,6 +11,7 @@ const QRTransaction = () => {
   const { state, dispatch } = useApp();
   const [countdown, setCountdown] = useState(300); // 5 minutes
   const [status, setStatus] = useState<'pending' | 'success' | 'expired'>('pending');
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const refill = state.activeRefill;
 
@@ -30,13 +31,19 @@ const QRTransaction = () => {
         setCountdown((prev) => prev - 1);
       }, 1000);
 
-      return () => clearInterval(timer);
+      return () => {
+        clearInterval(timer);
+      };
     }
   }, [countdown, status, refill, navigate]);
 
   const handleSimulateScan = () => {
-    setStatus('success');
-    dispatch({ type: 'COMPLETE_REFILL' });
+    setIsConnecting(true);
+    setTimeout(() => {
+      setStatus('success');
+      dispatch({ type: 'COMPLETE_REFILL' });
+      setIsConnecting(false);
+    }, 500);
   };
 
   const formatTime = (seconds: number) => {
@@ -160,18 +167,28 @@ const QRTransaction = () => {
               </div>
             </motion.div>
 
-            {/* Simulate Button */}
+            {/* Manual Connect Button */}
             <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={!isConnecting ? { scale: 1.02 } : {}}
+              whileTap={!isConnecting ? { scale: 0.98 } : {}}
               onClick={handleSimulateScan}
-              className="mt-6 bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 border border-white/30"
+              disabled={isConnecting}
+              className="mt-6 bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl font-medium flex items-center gap-3 border border-white/30 cursor-pointer disabled:opacity-80"
             >
-              <RefreshCw size={18} />
-              Simulasi Scan Mesin
+              {isConnecting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Menghubungkan...
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={18} />
+                  Hubungkan ke Mesin
+                </>
+              )}
             </motion.button>
           </div>
         </>
@@ -181,13 +198,32 @@ const QRTransaction = () => {
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="flex-1 flex flex-col items-center justify-center p-6"
+          className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden"
         >
+          {/* Confetti Particles Background */}
+          <div className="absolute inset-0 pointer-events-none">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 1, y: 0, x: 0, scale: 0 }}
+                animate={{ 
+                  opacity: 0, 
+                  y: -200 - Math.random() * 200, 
+                  x: (Math.random() - 0.5) * 300, 
+                  scale: Math.random() * 1.5 + 0.5,
+                  rotate: Math.random() * 360
+                }}
+                transition={{ duration: 2 + Math.random(), ease: "easeOut" }}
+                className={`absolute top-1/2 left-1/2 w-3 h-3 ${i % 2 === 0 ? 'bg-[#90BE6D]' : 'bg-white'} rounded-sm`}
+              />
+            ))}
+          </div>
+
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-            className="w-32 h-32 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-2xl"
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+            className="w-32 h-32 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-2xl relative z-10"
           >
             <CheckCircle2 size={64} className="text-[#006035]" />
           </motion.div>
