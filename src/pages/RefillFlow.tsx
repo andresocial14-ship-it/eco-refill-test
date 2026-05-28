@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, Routes, Route, useLocation } from 'react-router-dom';
+import { useNavigate, Routes, Route, useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { machines, products } from '../data/mockData';
@@ -11,8 +11,20 @@ import {
   ChevronRight,
   Check,
   AlertCircle,
-  Wine
+  Wine,
+  Smartphone,
+  CreditCard,
+  Building2,
+  Wallet as WalletIcon
 } from 'lucide-react';
+
+const paymentMethods = [
+  { id: 'wallet', name: 'Dompet Saya', icon: WalletIcon, color: '#006035' },
+  { id: 'gopay', name: 'GoPay', icon: Smartphone, color: '#00AA13' },
+  { id: 'ovo', name: 'OVO', icon: CreditCard, color: '#4C3494' },
+  { id: 'dana', name: 'DANA', icon: WalletIcon, color: '#118EEA' },
+  { id: 'bank', name: 'Transfer Bank', icon: Building2, color: '#006035' },
+];
 
 // Step 0: Container Option Screen
 const ContainerOption = () => {
@@ -236,7 +248,7 @@ const SelectProduct = () => {
   const handleSelect = (productId: string) => {
     setSelectedId(productId);
     setTimeout(() => {
-      navigate(`/refill/volume/${machineId}/${productId}`);
+      navigate(`/refill/brand/${machineId}/${productId}`);
     }, 300);
   };
 
@@ -308,42 +320,25 @@ const SelectProduct = () => {
   );
 };
 
-// Step 3: Select Volume
-const SelectVolume = () => {
+// Step 2.5: Select Brand
+const SelectBrand = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [volume, setVolume] = useState(300);
-  const { state } = useApp();
-
-  const pathParts = location.pathname.split('/');
-  const machineId = pathParts[4] || '';
-  const productId = pathParts[5] || '';
+  const { machineId, productId } = useParams<{ machineId: string, productId: string }>();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const machine = machines.find(m => m.id === machineId);
   const product = products.find(p => p.id === productId);
 
-  const totalPrice = useMemo(() => {
-    return product ? product.pricePerMl * volume : 0;
-  }, [product, volume]);
-
-  const handleContinue = () => {
-    navigate('/refill/confirm', {
-      state: {
-        machineId,
-        machineName: machine?.name,
-        productId,
-        productName: product?.name,
-        volume,
-        totalPrice
-      }
-    });
+  const handleSelect = (brandId: string) => {
+    setSelectedId(brandId);
+    setTimeout(() => {
+      navigate(`/refill/volume/${machineId}/${productId}/${brandId}`);
+    }, 300);
   };
 
   if (!machine || !product) {
     return <div className="p-6">Produk tidak ditemukan</div>;
   }
-
-  const volumeOptions = [100, 200, 300, 400, 500, 750, 1000];
 
   return (
     <motion.div
@@ -361,8 +356,101 @@ const SelectVolume = () => {
             <ArrowLeft size={20} className="text-gray-600" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Pilih Volume</h1>
+            <h1 className="text-xl font-bold text-gray-900">Pilih Merek</h1>
             <p className="text-sm text-gray-500">{product.name}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-6">
+        <div className="space-y-3">
+          {product.brands?.map((brand, idx) => (
+            <motion.button
+              key={brand.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleSelect(brand.id)}
+              className={`w-full bg-white rounded-2xl p-4 shadow-sm border-2 text-left transition-all ${
+                selectedId === brand.id ? 'border-[#006035]' : 'border-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-900">{brand.name}</h4>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-[#006035]">
+                    {formatRupiah(brand.pricePerMl * 100)}
+                  </p>
+                  <p className="text-xs text-gray-400">per 100ml</p>
+                </div>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Step 3: Select Volume
+const SelectVolume = () => {
+  const navigate = useNavigate();
+  const { machineId, productId, brandId } = useParams<{ machineId: string, productId: string, brandId: string }>();
+  const [volume, setVolume] = useState(300);
+  const { state } = useApp();
+
+  const machine = machines.find(m => m.id === machineId);
+  const product = products.find(p => p.id === productId);
+  const brand = product?.brands?.find(b => b.id === brandId);
+
+  const activePricePerMl = brand ? brand.pricePerMl : (product?.pricePerMl || 0);
+  const activeProductName = brand ? `${product?.name} - ${brand.name}` : product?.name;
+
+  const totalPrice = useMemo(() => {
+    return activePricePerMl * volume;
+  }, [activePricePerMl, volume]);
+
+  const handleContinue = () => {
+    navigate('/refill/confirm', {
+      state: {
+        machineId,
+        machineName: machine?.name,
+        productId,
+        productName: activeProductName,
+        volume,
+        totalPrice
+      }
+    });
+  };
+
+  if (!machine || !product) {
+    return <div className="p-6">Produk tidak ditemukan</div>;
+  }
+
+  const volumeOptions = [100, 200, 300, 400, 500, 750, 1000];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-white pb-28"
+    >
+      <div className="px-6 pt-12 pb-4">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+          >
+            <ArrowLeft size={20} className="text-gray-600" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Pilih Volume</h1>
+            <p className="text-sm text-gray-500">{activeProductName}</p>
           </div>
         </div>
       </div>
@@ -378,7 +466,7 @@ const SelectVolume = () => {
               {product.icon}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{product.name}</h3>
+              <h3 className="font-semibold text-gray-900">{activeProductName}</h3>
               <p className="text-sm text-gray-500">{machine.name}</p>
             </div>
           </div>
@@ -432,7 +520,7 @@ const SelectVolume = () => {
             max="1000"
             step="50"
             value={volume}
-            onChange={(e) => setVolume(parseInt(e.target.value))}
+            onChange={(e) => setVolume(Number(e.target.value) || 100)}
             className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#006035]"
           />
         </div>
@@ -442,7 +530,7 @@ const SelectVolume = () => {
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm text-gray-500">Total Harga</p>
-              <p className="text-xs text-gray-400">{formatRupiah(product.pricePerMl)}/ml</p>
+              <p className="text-xs text-gray-400">{formatRupiah(activePricePerMl * 100)}/100ml</p>
             </div>
             <p className="text-2xl font-bold text-[#006035]">{formatRupiah(totalPrice)}</p>
           </div>
@@ -475,6 +563,7 @@ const ConfirmOrder = () => {
   const location = useLocation();
   const { state, dispatch } = useApp();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
 
   const {
     machineId,
@@ -493,14 +582,17 @@ const ConfirmOrder = () => {
   }) || {};
 
   const handlePayment = async () => {
-    if (!state.walletBalance || state.walletBalance < totalPrice) {
+    if (!selectedPayment) return;
+    if (selectedPayment === 'wallet' && (!state.walletBalance || state.walletBalance < totalPrice)) {
       return;
     }
 
     setIsProcessing(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    dispatch({ type: 'DEDUCT_WALLET', payload: totalPrice });
+    if (selectedPayment === 'wallet') {
+      dispatch({ type: 'DEDUCT_WALLET', payload: totalPrice });
+    }
 
     const transactionId = `TXN${Date.now()}`;
     dispatch({
@@ -532,7 +624,7 @@ const ConfirmOrder = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gray-50 pb-8"
+      className="min-h-screen bg-gray-50 pb-28"
     >
       <div className="px-6 pt-12 pb-4">
         <div className="flex items-center gap-4 mb-6">
@@ -601,16 +693,48 @@ const ConfirmOrder = () => {
           </div>
         </div>
 
-        {/* Wallet Balance */}
-        <div className="bg-gradient-to-br from-[#006035] to-[#008045] rounded-3xl p-5 text-white mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/70 text-sm">Bayar dengan Dompet</p>
-              <p className="text-2xl font-bold mt-1">{formatRupiah(state.walletBalance)}</p>
-            </div>
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Droplet size={24} />
-            </div>
+        {/* Payment Methods */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm mb-6">
+          <h3 className="font-semibold text-gray-900 mb-4">Metode Pembayaran</h3>
+          <div className="space-y-3">
+            {paymentMethods.map((method) => {
+              const isWallet = method.id === 'wallet';
+              const disabled = isWallet && state.walletBalance < totalPrice;
+
+              return (
+                <motion.button
+                  key={method.id}
+                  whileHover={!disabled ? { scale: 1.01 } : {}}
+                  whileTap={!disabled ? { scale: 0.99 } : {}}
+                  onClick={() => !disabled && setSelectedPayment(method.id)}
+                  className={`w-full p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${
+                    selectedPayment === method.id
+                      ? 'border-[#006035] bg-[#E8F5EF]'
+                      : disabled ? 'border-gray-100 opacity-50' : 'border-gray-100'
+                  }`}
+                >
+                  <div
+                    style={{ backgroundColor: `${method.color}20` }}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  >
+                    <method.icon size={24} style={{ color: method.color }} />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-gray-900">{method.name}</p>
+                    {isWallet && (
+                      <p className={`text-xs ${disabled ? 'text-red-500' : 'text-gray-500'}`}>
+                        Saldo: {formatRupiah(state.walletBalance)}
+                      </p>
+                    )}
+                  </div>
+                  {selectedPayment === method.id && (
+                    <div className="w-6 h-6 rounded-full bg-[#006035] flex items-center justify-center">
+                      <Check size={14} className="text-white" />
+                    </div>
+                  )}
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
@@ -619,7 +743,7 @@ const ConfirmOrder = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handlePayment}
-          disabled={isProcessing || state.walletBalance < totalPrice}
+          disabled={isProcessing || !selectedPayment || (selectedPayment === 'wallet' && state.walletBalance < totalPrice)}
           className="w-full bg-[#006035] text-white py-4 rounded-2xl font-semibold text-lg shadow-lg shadow-[#006035]/20 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isProcessing ? (
@@ -627,7 +751,9 @@ const ConfirmOrder = () => {
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Memproses...
             </>
-          ) : state.walletBalance < totalPrice ? (
+          ) : !selectedPayment ? (
+            'Pilih Pembayaran'
+          ) : selectedPayment === 'wallet' && state.walletBalance < totalPrice ? (
             'Saldo Tidak Cukup'
           ) : (
             <>
@@ -637,7 +763,7 @@ const ConfirmOrder = () => {
           )}
         </motion.button>
 
-        {state.walletBalance < totalPrice && (
+        {selectedPayment === 'wallet' && state.walletBalance < totalPrice && (
           <button
             onClick={() => navigate('/wallet')}
             className="w-full mt-3 text-[#006035] font-medium text-center"
@@ -659,7 +785,8 @@ const RefillFlow = () => {
           <Route index element={<ContainerOption />} />
           <Route path="machine" element={<SelectMachine />} />
           <Route path="product/:machineId" element={<SelectProduct />} />
-          <Route path="volume/:prefix/:machineId/:productId" element={<SelectVolume />} />
+          <Route path="brand/:machineId/:productId" element={<SelectBrand />} />
+          <Route path="volume/:machineId/:productId/:brandId" element={<SelectVolume />} />
           <Route path="confirm" element={<ConfirmOrder />} />
         </Routes>
       </AnimatePresence>

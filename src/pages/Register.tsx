@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { Mail, Lock, Eye, EyeOff, User, ArrowLeft, Droplet } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, ArrowLeft, Droplet, Phone } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +26,7 @@ const Register = () => {
       id: 'USR' + Date.now(),
       name: name || 'Eco Warrior',
       email: email || 'user@ecorefill.com',
-      phone: '+62 812-3456-7890',
+      phone: phone || '+62 812-3456-7890',
       memberSince: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     };
 
@@ -107,6 +108,20 @@ const Register = () => {
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-gray-100 focus:border-[#00564A] focus:ring-2 focus:ring-[#00564A]/20 outline-none transition-all shadow-sm text-gray-900"
+            />
+          </div>
+
+          {/* Phone Input */}
+          <div className="relative">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <Phone size={20} />
+            </div>
+            <input
+              type="tel"
+              placeholder="Nomor Telepon"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-gray-100 focus:border-[#00564A] focus:ring-2 focus:ring-[#00564A]/20 outline-none transition-all shadow-sm text-gray-900"
             />
           </div>

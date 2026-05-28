@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,9 @@ import {
   Smartphone,
   X,
   History,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft,
+  ChevronsRight
 } from 'lucide-react';
 
 const topUpAmounts = [
@@ -32,25 +34,19 @@ const paymentMethods = [
   { id: 'bank', name: 'Transfer Bank', icon: Building2, color: '#006035' },
 ];
 
-const WithdrawPage = () => {
-  const navigate = useNavigate();
-};
-
 const WalletPage = () => {
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [showTopUp, setShowTopUp] = useState(false);
-  const [showWithdraw, setShowWithdraw] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawPayment, setWithdrawPayment] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCustomInput, setShowCustomInput] = useState(false);
 
   const handleTopUp = async () => {
-    const amount = showCustomInput ? parseInt(customAmount) : selectedAmount;
+    const amount = showCustomInput ? (parseInt(customAmount) || 0) : selectedAmount;
     if (!amount || amount < 10000 || !selectedPayment) return;
 
     const bonus = topUpAmounts.find(t => t.amount === amount)?.bonus || 0;
@@ -80,34 +76,6 @@ const WalletPage = () => {
     setShowCustomInput(false);
   };
 
-  const handleWithdraw = async () => {
-    if (!withdrawAmount || !withdrawPayment) return;
-    const amount = parseInt(withdrawAmount);
-    if (amount > state.walletBalance) return;
-
-    setIsProcessing(true);
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    dispatch({ type: 'WITHDRAW_WALLET', payload: amount });
-
-    dispatch({
-      type: 'ADD_TRANSACTION',
-      payload: {
-        id: `TXN${Date.now()}`,
-        type: 'refund',
-        amount: amount,
-        date: new Date().toISOString(),
-        description: `Penarikan Saldo ke ${paymentMethods.find(p => p.id === withdrawPayment)?.name}`
-      }
-    });
-
-    setIsProcessing(false);
-    setShowWithdraw(false);
-    setWithdrawAmount('');
-    setWithdrawPayment(null);
-  };
-
   const totalSpent = state.transactions
     .filter(t => t.type === 'refill')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -125,7 +93,15 @@ const WalletPage = () => {
     >
       {/* Header with Balance Card */}
       <div className="bg-gradient-to-br from-[#006035] to-[#008045] pt-12 pb-8 px-6 rounded-b-3xl">
-        <h1 className="text-xl font-bold text-white mb-6">Dompet Saya</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <h1 className="text-xl font-bold text-white">Dompet Saya</h1>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -144,16 +120,7 @@ const WalletPage = () => {
             className="flex-1 bg-white text-[#006035] py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-2"
           >
             <Plus size={20} />
-            Top Up
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowWithdraw(true)}
-            className="flex-1 bg-white/20 backdrop-blur-sm text-white py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-2"
-          >
-            <Minus size={20} />
-            Tarik Saldo
+            Top Up Saldo
           </motion.button>
         </div>
       </div>
@@ -239,7 +206,7 @@ const WalletPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-end justify-center"
             onClick={() => setShowTopUp(false)}
           >
             <motion.div
@@ -362,125 +329,35 @@ const WalletPage = () => {
                   ))}
                 </div>
 
-                {/* Summary Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleTopUp}
-                  disabled={isProcessing || !selectedPayment || (!selectedAmount && !customAmount)}
-                  className="w-full bg-[#006035] text-white py-4 rounded-2xl font-semibold text-lg disabled:opacity-50	flex items-center justify-center gap-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Memproses...
-                    </>
-                  ) : (
-                    `Top Up ${formatRupiah(parseInt(customAmount) || selectedAmount || 0)}`
-                  )}
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Withdraw Modal */}
-      <AnimatePresence>
-        {showWithdraw && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
-            onClick={() => setShowWithdraw(false)}
-          >
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Tarik Saldo</h2>
-                <button
-                  onClick={() => setShowWithdraw(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
-                >
-                  <X size={18} className="text-gray-600" />
-                </button>
-              </div>
-
-              {/* Balance */}
-              <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                <p className="text-sm text-gray-500">Saldo Tersedia</p>
-                <p className="text-2xl font-bold text-[#006035]">{formatRupiah(state.walletBalance)}</p>
-              </div>
-
-              {/* Amount Input */}
-              <div className="mb-4">
-                <label className="text-sm font-medium text-gray-600 mb-2 block">
-                  Jumlah Penarikan
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-                  <input
-                    type="number"
-                    placeholder="Masukkan jumlah"
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border border-gray-200 focus:border-[#006035] focus:ring-2 focus:ring-[#006035]/20 outline-none"
-                  />
-                </div>
-                <div className="flex gap-2 mt-2">
-                  {[25000, 50000, 100000].map((amt) => (
-                    <button
-                      key={amt}
-                      onClick={() => setWithdrawAmount(amt.toString())}
-                      className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-200"
-                    >
-                      Rp{amt.toLocaleString()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Payment Methods */}
-              <h3 className="font-medium text-gray-900 mb-2">Tujuan Penarikan</h3>
-              <div className="space-y-2 mb-6">
-                {paymentMethods.map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => setWithdrawPayment(method.id)}
-                    className={`w-full p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${
-                      withdrawPayment === method.id
-                        ? 'border-[#006035] bg-[#E8F5EF]'
-                        : 'border-gray-100'
+                {/* Summary Slide-to-Confirm */}
+                <div ref={containerRef} className="relative w-full h-16 bg-gray-100 rounded-2xl flex items-center mt-6">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="font-semibold text-[#006035] opacity-70">
+                      {isProcessing ? 'Memproses...' : `Geser untuk Top Up ${formatRupiah(showCustomInput ? (parseInt(customAmount) || 0) : (selectedAmount || 0))}`}
+                    </span>
+                  </div>
+                  <motion.div
+                    drag={!isProcessing && selectedPayment && (selectedAmount || customAmount) ? "x" : false}
+                    dragConstraints={containerRef}
+                    dragElastic={0.1}
+                    onDragEnd={(e, info) => {
+                      if (info.offset.x > 150) {
+                        handleTopUp();
+                      }
+                    }}
+                    whileDrag={{ scale: 1.05 }}
+                    className={`absolute left-1 w-14 h-14 rounded-xl flex items-center justify-center z-10 shadow-sm ${
+                      (!selectedPayment || (!selectedAmount && !customAmount)) ? 'bg-gray-300' : 'bg-[#006035]'
                     }`}
                   >
-                    <method.icon size={20} style={{ color: method.color }} />
-                    <span className="text-sm font-medium text-gray-900">{method.name}</span>
-                  </button>
-                ))}
+                    {isProcessing ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <ChevronsRight size={24} className="text-white" />
+                    )}
+                  </motion.div>
+                </div>
               </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleWithdraw}
-                disabled={isProcessing || !withdrawPayment || !withdrawAmount}
-                className="w-full bg-[#006035] text-white py-4 rounded-2xl font-semibold text-lg disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isProcessing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Memproses...
-                  </>
-                ) : (
-                  `Tarik ${formatRupiah(parseInt(withdrawAmount) || 0)}`
-                )}
-              </motion.button>
             </motion.div>
           </motion.div>
         )}

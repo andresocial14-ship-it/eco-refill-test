@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Plus,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react';
 
 const formatCurrency = (amount: number) => {
@@ -135,9 +136,19 @@ const Bottles = () => {
       className="min-h-screen bg-gray-50 pb-nav"
     >
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#00796B] to-[#00564A] pt-12 pb-8 px-6 rounded-b-3xl">
-        <h1 className="text-xl font-bold text-white mb-2">Bottle Deposits</h1>
-        <p className="text-white/70 text-sm mb-6">Manage your reusable bottles</p>
+      <div className="bg-gradient-to-br from-[#006035] to-[#006035] pt-12 pb-8 px-6 rounded-b-3xl">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm"
+          >
+            <ArrowLeft size={20} className="text-white" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-white mb-1">Bottle Deposits</h1>
+            <p className="text-white/70 text-sm">Manage your reusable bottles</p>
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
@@ -158,24 +169,24 @@ const Bottles = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="px-6 py-4 flex gap-3">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShowReturnModal(true)}
-          className="flex-1 bg-white py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 text-[#00564A] font-medium"
-        >
-          <RotateCcw size={18} />
-          Return Bottle
-        </motion.button>
+      <div className="px-6 py-4 flex flex-col gap-3">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowPurchaseModal(true)}
-          className="flex-1 bg-[#00564A] py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 text-white font-medium"
+          className="w-full bg-gradient-to-r from-[#006035] to-[#008045] py-4 px-4 rounded-2xl shadow-lg shadow-[#006035]/20 flex items-center justify-center gap-2 text-white font-bold text-lg"
         >
-          <Plus size={18} />
-          New Bottle
+          <Plus size={20} />
+          Konfirmasi Deposit Botol Baru
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowReturnModal(true)}
+          className="w-full bg-white py-3 px-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center gap-2 text-[#006035] font-medium"
+        >
+          <RotateCcw size={18} />
+          Kembalikan Botol
         </motion.button>
       </div>
 
@@ -193,8 +204,8 @@ const Bottles = () => {
                 className="bg-white rounded-2xl p-4 shadow-sm"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#DFF5F1] to-white flex items-center justify-center">
-                    <Droplet size={24} className="text-[#00564A]" />
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#E8F5EF] to-white flex items-center justify-center">
+                    <Droplet size={24} className="text-[#006035]" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -214,7 +225,7 @@ const Bottles = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-400">Deposit</p>
-                    <p className="font-bold text-[#00564A]">{formatCurrency(bottle.depositAmount)}</p>
+                    <p className="font-bold text-[#006035]">{formatCurrency(bottle.depositAmount)}</p>
                   </div>
                 </div>
               </motion.div>
@@ -268,7 +279,7 @@ const Bottles = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowPurchaseModal(true)}
-            className="bg-[#00564A] text-white px-6 py-3 rounded-xl font-medium"
+            className="bg-[#006035] text-white px-6 py-3 rounded-xl font-medium"
           >
             Get a Bottle
           </motion.button>
@@ -313,7 +324,7 @@ const Bottles = () => {
                     onClick={() => setSelectedBottle(bottle.id)}
                     className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
                       selectedBottle === bottle.id
-                        ? 'border-[#00564A] bg-[#DFF5F1]'
+                        ? 'border-[#006035] bg-[#E8F5EF]'
                         : 'border-gray-100'
                     }`}
                   >
@@ -323,7 +334,7 @@ const Bottles = () => {
                         <p className="text-sm text-gray-500">Deposit: {formatCurrency(bottle.depositAmount)}</p>
                       </div>
                       {selectedBottle === bottle.id && (
-                        <CheckCircle size={24} className="text-[#00564A]" />
+                        <CheckCircle size={24} className="text-[#006035]" />
                       )}
                     </div>
                   </button>
@@ -335,7 +346,7 @@ const Bottles = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleReturnBottle}
                 disabled={!selectedBottle || isProcessing}
-                className="w-full bg-[#00564A] text-white py-4 rounded-2xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-[#006035] text-white py-4 rounded-2xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isProcessing ? (
                   <>
@@ -413,8 +424,8 @@ const Bottles = () => {
                             </p>
                           )}
                         </div>
-                        <div className="w-12 h-12 rounded-xl bg-[#DFF5F1] flex items-center justify-center">
-                          <Droplet size={20} className="text-[#00564A]" />
+                        <div className="w-12 h-12 rounded-xl bg-[#E8F5EF] flex items-center justify-center">
+                          <Droplet size={20} className="text-[#006035]" />
                         </div>
                       </div>
                     </motion.button>

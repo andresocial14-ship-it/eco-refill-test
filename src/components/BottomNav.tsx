@@ -1,11 +1,11 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, Droplet, Wallet, Receipt, User } from 'lucide-react';
+import { Home, Droplet, Gift, Receipt, User } from 'lucide-react';
 
 const navItems = [
   { path: '/home', icon: Home, label: 'Home' },
   { path: '/refill', icon: Droplet, label: 'Refill' },
-  { path: '/wallet', icon: Wallet, label: 'Dompet' },
+  { path: '/rewards', icon: Gift, label: 'Rewards' },
   { path: '/transactions', icon: Receipt, label: 'Riwayat' },
   { path: '/profile', icon: User, label: 'Profil' },
 ];
@@ -25,8 +25,7 @@ const BottomNav = () => {
           <div className="flex justify-around items-center">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path ||
-                (item.path === '/refill' && location.pathname.startsWith('/refill')) ||
-                (item.path === '/wallet' && location.pathname === '/wallet');
+                (item.path === '/refill' && location.pathname.startsWith('/refill'));
 
               return (
                 <NavLink

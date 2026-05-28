@@ -176,7 +176,7 @@ const Home = () => {
               <p className="text-xs text-gray-500 mt-1">Botol Tersimpan</p>
             </div>
             <div className="bg-white/80 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-[#006035]">{state.ecoStats.plasticWasteReduced.toFixed(1)}kg</p>
+              <p className="text-2xl font-bold text-[#006035]">{state.ecoStats.plasticWasteReduced}kg</p>
               <p className="text-xs text-gray-500 mt-1">Sampah Berkurang</p>
             </div>
             <div className="bg-white/80 rounded-xl p-3 text-center">

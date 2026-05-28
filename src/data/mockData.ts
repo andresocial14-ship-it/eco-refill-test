@@ -10,6 +10,12 @@ export interface Machine {
   products: string[];
 }
 
+export interface ProductBrand {
+  id: string;
+  name: string;
+  pricePerMl: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -19,6 +25,7 @@ export interface Product {
   icon: string;
   color: string;
   description: string;
+  brands: ProductBrand[];
 }
 
 export interface Transaction {
@@ -118,7 +125,12 @@ export const products: Product[] = [
     pricePerMl: 0.5,
     icon: '🧼',
     color: '#00B4D8',
-    description: 'Gentle cleansing soap for body'
+    description: 'Gentle cleansing soap for body',
+    brands: [
+      { id: 'lifebuoy', name: 'Lifebuoy', pricePerMl: 0.5 },
+      { id: 'dettol', name: 'Dettol', pricePerMl: 0.6 },
+      { id: 'nuvo', name: 'Nuvo', pricePerMl: 0.45 }
+    ]
   },
   {
     id: 'shampoo',
@@ -128,7 +140,12 @@ export const products: Product[] = [
     pricePerMl: 0.8,
     icon: '🧴',
     color: '#90BE6D',
-    description: 'Herbal shampoo for healthy hair'
+    description: 'Herbal shampoo for healthy hair',
+    brands: [
+      { id: 'pantene', name: 'Pantene', pricePerMl: 0.8 },
+      { id: 'sunsilk', name: 'Sunsilk', pricePerMl: 0.7 },
+      { id: 'clear', name: 'Clear', pricePerMl: 0.9 }
+    ]
   },
   {
     id: 'detergent',
@@ -138,7 +155,12 @@ export const products: Product[] = [
     pricePerMl: 0.4,
     icon: '🫧',
     color: '#F9C74F',
-    description: 'Eco-friendly laundry detergent'
+    description: 'Eco-friendly laundry detergent',
+    brands: [
+      { id: 'rinso', name: 'Rinso', pricePerMl: 0.4 },
+      { id: 'attack', name: 'Attack', pricePerMl: 0.45 },
+      { id: 'soklin', name: 'SoKlin', pricePerMl: 0.35 }
+    ]
   },
   {
     id: 'dish-soap',
@@ -148,7 +170,11 @@ export const products: Product[] = [
     pricePerMl: 0.35,
     icon: '🍽️',
     color: '#F8961E',
-    description: 'Effective dish cleaning liquid'
+    description: 'Effective dish cleaning liquid',
+    brands: [
+      { id: 'sunlight', name: 'Sunlight', pricePerMl: 0.35 },
+      { id: 'mamalemon', name: 'Mama Lemon', pricePerMl: 0.3 }
+    ]
   },
   {
     id: 'floor-cleaner',
@@ -158,7 +184,11 @@ export const products: Product[] = [
     pricePerMl: 0.45,
     icon: '🧹',
     color: '#E76F51',
-    description: 'Fresh scent floor disinfectant'
+    description: 'Fresh scent floor disinfectant',
+    brands: [
+      { id: 'supersol', name: 'Super Sol', pricePerMl: 0.45 },
+      { id: 'wipol', name: 'Wipol', pricePerMl: 0.5 }
+    ]
   }
 ];
 
@@ -300,7 +330,7 @@ export const rewards: Reward[] = [
 
 export const ecoStats = {
   plasticBottlesSaved: 1847,
-  plasticWasteReduced: 55.4, // kg
+  plasticWasteReduced: 55, // kg
   waterSaved: 2340, // liters
   carbonFootprintReduced: 127.8, // kg CO2
   treesEquiv: 6
