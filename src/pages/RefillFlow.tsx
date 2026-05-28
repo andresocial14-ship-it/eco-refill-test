@@ -294,24 +294,21 @@ const SelectProduct = () => {
               }`}
             >
               <div className="flex items-center gap-4">
-                <div
-                  style={{ backgroundColor: `${product.color}20` }}
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
-                >
-                  {product.icon}
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">{product.name}</h4>
-                  <p className="text-xs text-gray-400">{product.nameId}</p>
-                  <p className="text-xs text-gray-400 mt-1">{product.description}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-[#006035]">
-                    {formatRupiah(product.pricePerMl * 100)}
-                  </p>
-                  <p className="text-xs text-gray-400">per 100ml</p>
-                </div>
-              </div>
+  <div
+    style={{ backgroundColor: `${product.color}20` }}
+    className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
+  >
+    {product.icon}
+  </div>
+
+  <div className="flex-1">
+    <h4 className="font-semibold text-gray-900">{product.name}</h4>
+    <p className="text-xs text-gray-400">{product.nameId}</p>
+    <p className="text-xs text-gray-400 mt-1">
+      {product.description}
+    </p>
+  </div>
+</div>
             </motion.button>
           ))}
         </div>

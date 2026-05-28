@@ -129,7 +129,8 @@ export const products: Product[] = [
     brands: [
       { id: 'lifebuoy', name: 'Lifebuoy', pricePerMl: 0.5 },
       { id: 'dettol', name: 'Dettol', pricePerMl: 0.6 },
-      { id: 'nuvo', name: 'Nuvo', pricePerMl: 0.45 }
+      { id: 'nuvo', name: 'Nuvo', pricePerMl: 0.45 },
+      { id: 'Zwitsal', name: 'Zwitsal', pricePerMl: 0.5 }
     ]
   },
   {
