@@ -132,10 +132,10 @@ const Bottles = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-700';
-      case 'Returned': return 'bg-blue-100 text-blue-700';
-      case 'Recycled': return 'bg-purple-100 text-purple-700';
-      case 'Damaged': return 'bg-red-100 text-red-700';
+      case 'Aktif': return 'bg-green-100 text-green-700';
+      case 'Dikembalikan': return 'bg-blue-100 text-blue-700';
+      case 'Didaur Ulang': return 'bg-purple-100 text-purple-700';
+      case 'Rusak': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -223,7 +223,7 @@ const Bottles = () => {
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-semibold text-gray-900">{bottle.type} Bottle</h4>
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                        Active
+                        Aktif 
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{bottle.size} capacity</p>
@@ -285,15 +285,15 @@ const Bottles = () => {
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
             <Recycle size={32} className="text-gray-400" />
           </div>
-          <h3 className="font-semibold text-gray-900 mb-2">No Active Bottles</h3>
-          <p className="text-gray-500 text-sm mb-4">Purchase a reusable bottle to get started</p>
+          <h3 className="font-semibold text-gray-900 mb-2">Tidak ada botol aktif</h3>
+          <p className="text-gray-500 text-sm mb-4">Beli botol reusable untuk memulai</p>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowPurchaseModal(true)}
             className="bg-[#006035] text-white px-6 py-3 rounded-xl font-medium"
           >
-            Get a Bottle
+            Dapatkan Botol
           </motion.button>
         </div>
       )}
