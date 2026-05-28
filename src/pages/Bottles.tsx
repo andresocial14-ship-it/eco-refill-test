@@ -145,8 +145,8 @@ const Bottles = () => {
             <ArrowLeft size={20} className="text-white" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-white mb-1">Bottle Deposits</h1>
-            <p className="text-white/70 text-sm">Manage your reusable bottles</p>
+            <h1 className="text-xl font-bold text-white mb-1">Deposit Botol</h1>
+            <p className="text-white/70 text-sm">Kelola Botol Deposit Anda</p>
           </div>
         </div>
 
@@ -154,7 +154,7 @@ const Bottles = () => {
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Recycle size={18} className="text-white/80" />
-              <span className="text-white/80 text-sm">Active Bottles</span>
+              <span className="text-white/80 text-sm">Botol Aktif</span>
             </div>
             <p className="text-3xl font-bold text-white">{activeBottles.length}</p>
           </div>
@@ -177,7 +177,7 @@ const Bottles = () => {
           className="w-full bg-gradient-to-r from-[#006035] to-[#008045] py-4 px-4 rounded-2xl shadow-lg shadow-[#006035]/20 flex items-center justify-center gap-2 text-white font-bold text-lg"
         >
           <Plus size={20} />
-          Konfirmasi Deposit Botol Baru
+          Deposit Botol Baru
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -193,7 +193,7 @@ const Bottles = () => {
       {/* Active Bottles */}
       {activeBottles.length > 0 && (
         <div className="px-6 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-3">Active Bottles</h3>
+          <h3 className="font-semibold text-gray-900 mb-3">Botol Aktif</h3>
           <div className="space-y-3">
             {activeBottles.map((bottle, idx) => (
               <motion.div

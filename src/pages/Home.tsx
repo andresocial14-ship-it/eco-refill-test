@@ -37,7 +37,7 @@ const Home = () => {
     { icon: QrCode, label: 'Refill Sekarang', color: '#006035', path: '/refill' },
     { icon: Recycle, label: 'Botol Saya', color: '#008045', path: '/bottles' },
     { icon: MapPin, label: 'Cari Mesin', color: '#00B4D8', path: '/machines' },
-    { icon: Leaf, label: 'Eco Impact', color: '#90BE6D', path: '/eco-impact' }
+    { icon: Leaf, label: 'Eco-Impact', color: '#90BE6D', path: '/eco-impact' }
   ];
 
   return (
@@ -83,7 +83,7 @@ const Home = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Wallet size={20} />
-                <span className="text-white/80 text-sm font-medium">Saldo Dompet</span>
+                <span className="text-white/80 text-sm font-medium">Saldo Anda</span>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -161,7 +161,7 @@ const Home = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <TrendingUp size={18} className="text-[#006035]" />
-              <span className="font-semibold text-gray-900">Eco Impact Anda</span>
+              <span className="font-semibold text-gray-900">Eco-Impact Anda</span>
             </div>
             <button
               onClick={() => navigate('/eco-impact')}

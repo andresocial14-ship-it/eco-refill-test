@@ -6,8 +6,8 @@ const navItems = [
   { path: '/home', icon: Home, label: 'Home' },
   { path: '/refill', icon: Droplet, label: 'Refill' },
   { path: '/rewards', icon: Gift, label: 'Rewards' },
-  { path: '/transactions', icon: Receipt, label: 'Riwayat' },
-  { path: '/profile', icon: User, label: 'Profil' },
+  { path: '/transactions', icon: Receipt, label: 'History' },
+  { path: '/profile', icon: User, label: 'Profile' },
 ];
 
 const BottomNav = () => {

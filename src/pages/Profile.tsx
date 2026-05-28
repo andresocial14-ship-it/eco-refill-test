@@ -27,10 +27,10 @@ const Profile = () => {
   };
 
   const menuItems = [
-    { icon: Bell, label: 'Notifications', description: 'Manage your alerts', path: '#' },
-    { icon: Shield, label: 'Security', description: 'Password and authentication', path: '#' },
-    { icon: Settings, label: 'Settings', description: 'App preferences', path: '#' },
-    { icon: HelpCircle, label: 'Help & Support', description: 'FAQ and contact', path: '#' },
+    { icon: Bell, label: 'Notifikasi', description: 'Pengaturan notifikasi', path: '#' },
+    { icon: Shield, label: 'Keamanan', description: 'Pengaturan keamanan akun', path: '#' },
+    { icon: Settings, label: 'Pengaturan', description: 'Pengaturan aplikasi', path: '#' },
+    { icon: HelpCircle, label: 'Bantuan', description: 'Bantuan dan dukungan', path: '#' },
   ];
 
   const getTierBadge = (points: number) => {
@@ -51,7 +51,7 @@ const Profile = () => {
     >
       {/* Header */}
       <div className="bg-gradient-to-br from-[#00564A] to-[#00796B] pt-12 pb-8 px-6 rounded-b-3xl">
-        <h1 className="text-xl font-bold text-white mb-6">Profile</h1>
+        <h1 className="text-xl font-bold text-white mb-6">Profil</h1>
 
         {/* Profile Card */}
         <motion.div
@@ -65,7 +65,7 @@ const Profile = () => {
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-bold text-white">{state.user?.name || 'Eco Warrior'}</h2>
-              <p className="text-white/70 text-sm">Member since {state.user?.memberSince || 'January 2024'}</p>
+              <p className="text-white/70 text-sm">Member sejak {state.user?.memberSince || 'Januari 2024'}</p>
             </div>
             <div className={`${tierBadge.color} px-3 py-1 rounded-full text-white text-sm font-medium flex items-center gap-1`}>
               <span>{tierBadge.icon}</span>
@@ -93,7 +93,7 @@ const Profile = () => {
               <Phone size={18} className="text-[#00564A]" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500">Phone</p>
+              <p className="text-xs text-gray-500">Nomor Telepon</p>
               <p className="text-gray-900 font-medium">{state.user?.phone || '+62 812-3456-7890'}</p>
             </div>
           </div>
@@ -103,7 +103,7 @@ const Profile = () => {
               <Calendar size={18} className="text-[#00564A]" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-gray-500">Member Since</p>
+              <p className="text-xs text-gray-500">Member Sejak</p>
               <p className="text-gray-900 font-medium">{state.user?.memberSince || 'January 2024'}</p>
             </div>
           </div>
@@ -138,7 +138,7 @@ const Profile = () => {
               <Award size={18} className="text-[#90BE6D]" />
             </div>
             <p className="text-xl font-bold text-gray-900">{state.ecoPoints}</p>
-            <p className="text-xs text-gray-500">Points</p>
+            <p className="text-xs text-gray-500">Eco Points</p>
           </motion.div>
 
           <motion.div
@@ -153,7 +153,7 @@ const Profile = () => {
             <p className="text-xl font-bold text-gray-900">
               {state.bottles.filter(b => b.status === 'Active').length}
             </p>
-            <p className="text-xs text-gray-500">Bottles</p>
+            <p className="text-xs text-gray-500">Botol</p>
           </motion.div>
         </div>
       </div>
@@ -201,7 +201,6 @@ const Profile = () => {
       {/* App Info */}
       <div className="px-6 mt-4 text-center">
         <p className="text-gray-400 text-sm">EcoRefill v1.0.0</p>
-        <p className="text-gray-300 text-xs mt-1">Made with 💚 for a sustainable future</p>
       </div>
     </motion.div>
   );

@@ -149,7 +149,7 @@ const EcoImpact = () => {
             <ArrowLeft size={20} className="text-white" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-white">Eco Impact</h1>
+            <h1 className="text-xl font-bold text-white">Eco-Impact</h1>
             <p className="text-white/70 text-sm">Kontribusi Anda untuk bumi</p>
           </div>
         </div>
@@ -166,7 +166,6 @@ const EcoImpact = () => {
               <p className="text-4xl font-bold text-white mt-1">
                 <AnimatedNumber value={stats.carbonFootprintReduced} suffix="kg" />
               </p>
-              <p className="text-white/60 text-xs mt-1">Setara CO2</p>
             </div>
             <div className="relative">
               <CircularProgress
@@ -229,7 +228,7 @@ const EcoImpact = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Trophy size={20} className="text-yellow-500" />
-              Achievements
+              Misi
             </h2>
             <span className="text-sm text-gray-500">
               {achievements.filter(a => a.unlocked).length}/{achievements.length} terbuka

@@ -43,7 +43,7 @@ export interface Bottle {
   id: string;
   type: string;
   size: string;
-  status: 'Active' | 'Returned' | 'Recycled' | 'Damaged';
+  status: 'Aktif' | 'Dikembalikan' | 'Didaur ulang' | 'Rusak';
   depositAmount: number;
   purchaseDate: string;
   lastUsed?: string;
@@ -119,76 +119,75 @@ export const machines: Machine[] = [
 export const products: Product[] = [
   {
     id: 'bath-soap',
-    name: 'Bath Soap',
-    nameId: 'Sabun Mandi',
+    name: 'Sabun Mandi',
     category: 'Personal Care',
     pricePerMl: 0.5,
     icon: '🧼',
     color: '#00B4D8',
-    description: 'Gentle cleansing soap for body',
+    description: 'Menjaga kelembapan alami kulit setiap kali mandi',
     brands: [
-      { id: 'lifebuoy', name: 'Lifebuoy', pricePerMl: 0.5 },
-      { id: 'dettol', name: 'Dettol', pricePerMl: 0.6 },
-      { id: 'nuvo', name: 'Nuvo', pricePerMl: 0.45 },
-      { id: 'Zwitsal', name: 'Zwitsal', pricePerMl: 0.5 }
+      { id: 'biore', name: 'Biore', pricePerMl: 42 },
+  { id: 'dettol', name: 'Dettol', pricePerMl: 38 },
+  { id: 'dove', name: 'Dove', pricePerMl: 180 },
+  { id: 'lifebuoy', name: 'Lifebuoy', pricePerMl: 27 },
+  { id: 'lux', name: 'Lux', pricePerMl: 140 }
     ]
   },
   {
     id: 'shampoo',
-    name: 'Shampoo',
-    nameId: 'Sampo',
+    name: 'Sampo',
     category: 'Personal Care',
     pricePerMl: 0.8,
     icon: '🧴',
     color: '#90BE6D',
-    description: 'Herbal shampoo for healthy hair',
+    description: 'Formula ramah lingkungan untuk kulit kepala segar dan rambut lembut',
     brands: [
-      { id: 'pantene', name: 'Pantene', pricePerMl: 0.8 },
-      { id: 'sunsilk', name: 'Sunsilk', pricePerMl: 0.7 },
-      { id: 'clear', name: 'Clear', pricePerMl: 0.9 }
+      { id: 'clear', name: 'Clear', pricePerMl: 90 },
+      { id: 'headshoulders', name: 'Head & Shoulders', pricePerMl: 32 },
+      { id: 'sunsilk', name: 'Sunsilk', pricePerMl: 44 }
     ]
   },
   {
     id: 'detergent',
-    name: 'Liquid Detergent',
-    nameId: 'Deterjen Cair',
+    name: 'Deterjen Cair',
     category: 'Household',
     pricePerMl: 0.4,
     icon: '🫧',
     color: '#F9C74F',
-    description: 'Eco-friendly laundry detergent',
+    description: 'Pembersih pakaian ampuh dengan formula ramah lingkungan',
     brands: [
-      { id: 'rinso', name: 'Rinso', pricePerMl: 0.4 },
-      { id: 'attack', name: 'Attack', pricePerMl: 0.45 },
-      { id: 'soklin', name: 'SoKlin', pricePerMl: 0.35 }
+      { id: 'attack', name: 'Attack', pricePerMl: 30 },
+      { id: 'rinso', name: 'Rinso', pricePerMl: 45 },
+      { id: 'soklin_deterjen', name: 'So Klin', pricePerMl: 38 }
     ]
   },
   {
     id: 'dish-soap',
-    name: 'Dishwashing Liquid',
-    nameId: 'Sabun Cuci Piring',
+    name: 'Sabun Cuci Piring',
     category: 'Household',
     pricePerMl: 0.35,
     icon: '🍽️',
     color: '#F8961E',
-    description: 'Effective dish cleaning liquid',
+    description: 'Formula khusus efektif mengangkat lemak membandel, aman di tangan dan ramah lingkungan',
     brands: [
-      { id: 'sunlight', name: 'Sunlight', pricePerMl: 0.35 },
-      { id: 'mamalemon', name: 'Mama Lemon', pricePerMl: 0.3 }
+      { id: 'ekonomi', name: 'Ekonomi', pricePerMl: 15 },
+  { id: 'mamalemon', name: 'Mama Lemon', pricePerMl: 18 },
+  { id: 'sunlight', name: 'Sunlight', pricePerMl: 25 }
     ]
   },
   {
     id: 'floor-cleaner',
-    name: 'Floor Cleaner',
-    nameId: 'Pembersih Lantai',
+    name: 'Pembersih Lantai',
     category: 'Household',
     pricePerMl: 0.45,
     icon: '🧹',
     color: '#E76F51',
-    description: 'Fresh scent floor disinfectant',
+    description: 'Formula antibakteri efektif untuk lantai higienis dan bebas kuman',
     brands: [
-      { id: 'supersol', name: 'Super Sol', pricePerMl: 0.45 },
-      { id: 'wipol', name: 'Wipol', pricePerMl: 0.5 }
+      { id: 'mrmuscle', name: 'Mr. Muscle', pricePerMl: 30 },
+  { id: 'soklin_lantai', name: 'So Klin Lantai', pricePerMl: 24 },
+  { id: 'superpell', name: 'Super Pell', pricePerMl: 25 },
+  { id: 'wipol', name: 'Wipol', pricePerMl: 17 }
     ]
   }
 ];
@@ -259,7 +258,7 @@ export const initialBottles: Bottle[] = [
     id: 'BTL001',
     type: 'Standard',
     size: '500ml',
-    status: 'Active',
+    status: 'Aktif',
     depositAmount: 15000,
     purchaseDate: '2024-01-01',
     lastUsed: '2024-01-15',
@@ -269,7 +268,7 @@ export const initialBottles: Bottle[] = [
     id: 'BTL002',
     type: 'Premium',
     size: '1000ml',
-    status: 'Active',
+    status: 'Aktif',
     depositAmount: 25000,
     purchaseDate: '2024-01-05',
     lastUsed: '2024-01-12',
@@ -279,7 +278,7 @@ export const initialBottles: Bottle[] = [
     id: 'BTL003',
     type: 'Standard',
     size: '300ml',
-    status: 'Returned',
+    status: 'Dikembalikan',
     depositAmount: 10000,
     purchaseDate: '2023-12-15',
     refillsCount: 12
@@ -288,59 +287,59 @@ export const initialBottles: Bottle[] = [
 
 export const rewards: Reward[] = [
   {
-    id: 'RWD001',
-    name: 'Free Refill',
-    description: 'Get one free refill up to 500ml',
-    pointsCost: 500,
-    image: '🎁',
-    category: 'freeRefill'
-  },
-  {
     id: 'RWD002',
-    name: '20% Discount Voucher',
-    description: '20% off on your next purchase',
+    name: 'Voucher Diskon 20%',
+    description: 'Dapatkan diskon 20% untuk pembelian berikutnya',
     pointsCost: 300,
     image: '🏷️',
     category: 'discount'
   },
   {
-    id: 'RWD003',
-    name: 'Eco Tote Bag',
-    description: 'Premium reusable eco-friendly tote bag',
-    pointsCost: 1000,
-    image: '🛍️',
-    category: 'merchandise'
+    id: 'RWD001',
+    name: 'Refill Gratis',
+    description: 'Dapatkan satu kali isi ulang gratis hingga 500ml',
+    pointsCost: 500,
+    image: '🎁',
+    category: 'freeRefill'
+  },
+  {
+    id: 'RWD005',
+    name: 'Diskon 50%',
+    description: 'Dapatkan diskon 50% untuk pembelian berikutnya',
+    pointsCost: 750,
+    image: '💫',
+    category: 'discount'
   },
   {
     id: 'RWD004',
     name: 'Premium Bottle',
-    description: 'Free 1000ml premium refillable bottle',
+    description: 'Gratis Botol Refill Premium 1000ml',
     pointsCost: 800,
     image: '🍶',
     category: 'merchandise'
   },
   {
-    id: 'RWD005',
-    name: '50% Discount',
-    description: 'Half price on your next refill',
-    pointsCost: 750,
-    image: '💫',
-    category: 'discount'
+    id: 'RWD003',
+    name: 'Eco Tote Bag',
+    description: 'Tas belanja ramah lingkungan premium yang dapat digunakan kembali',
+    pointsCost: 1000,
+    image: '🛍️',
+    category: 'merchandise'
   }
 ];
 
 export const ecoStats = {
-  plasticBottlesSaved: 1847,
+  plasticBottlesSaved: 120,
   plasticWasteReduced: 55, // kg
-  waterSaved: 2340, // liters
-  carbonFootprintReduced: 127.8, // kg CO2
-  treesEquiv: 6
+  waterSaved: 50, // liters
+  carbonFootprintReduced: 30, // kg CO2
+  treesEquiv: 3
 };
 
 export const achievements = [
-  { id: 'ACH001', title: 'First Refill', description: 'Complete your first refill', icon: '🌱', progress: 100, unlocked: true },
-  { id: 'ACH002', title: 'Eco Warrior', description: 'Save 100 plastic bottles', icon: '🛡️', progress: 100, unlocked: true },
-  { id: 'ACH003', title: 'Refill Master', description: 'Complete 50 refills', icon: '🏅', progress: 68, unlocked: false },
-  { id: 'ACH004', title: 'Green Champion', description: 'Save 500 plastic bottles', icon: '🏆', progress: 37, unlocked: false },
-  { id: 'ACH005', title: 'Sustainability Hero', description: 'Complete 100 refills', icon: '⭐', progress: 34, unlocked: false }
+  { id: 'ACH001', title: 'Refill Pertama', description: 'Selesaikan refill pertamamu', icon: '🌱', progress: 100, unlocked: true },
+  { id: 'ACH002', title: 'Juara Ekologi', description: 'Hemat 100 botol plastik', icon: '🛡️', progress: 100, unlocked: true },
+  { id: 'ACH003', title: 'Master Refill', description: 'Selesaikan 50 refill', icon: '🏅', progress: 68, unlocked: false },
+  { id: 'ACH004', title: 'Juara Hijau', description: 'Hemat 500 botol plastik', icon: '🏆', progress: 37, unlocked: false },
+  { id: 'ACH005', title: 'Pahlawan Keberlanjutan', description: 'Selesaikan 100 refill', icon: '⭐', progress: 34, unlocked: false }
 ];

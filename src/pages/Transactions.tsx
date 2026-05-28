@@ -93,12 +93,12 @@ const Transactions = () => {
     >
       {/* Header */}
       <div className="bg-white pt-12 pb-4 px-6 border-b border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Transactions</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Riwayat Transaksi</h1>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-gradient-to-br from-[#DFF5F1] to-white rounded-2xl p-4">
-            <p className="text-gray-500 text-sm mb-1">Total Spent</p>
+            <p className="text-gray-500 text-sm mb-1">Total Pengeluaran</p>
             <p className="text-xl font-bold text-gray-900">{formatCurrency(totalSpent)}</p>
           </div>
           <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-4">

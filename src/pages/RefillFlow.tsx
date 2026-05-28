@@ -96,7 +96,7 @@ const ContainerOption = () => {
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900 text-lg mb-1">Deposit Botol</h3>
               <p className="text-sm text-gray-500">Sewa botol baru dengan sistem deposit</p>
-              <p className="text-xs text-[#006035] mt-2 font-medium">Deposit mulai dari Rp15.000</p>
+              <p className="text-xs text-[#006035] mt-2 font-medium">Deposit mulai dari Rp10.000</p>
             </div>
             <ChevronRight size={24} className="text-gray-400 mt-4" />
           </div>
@@ -509,7 +509,7 @@ const SelectVolume = () => {
         {/* Custom Slider */}
         <div className="mb-6">
           <label className="text-sm font-medium text-gray-600 mb-3 block">
-            Atau sesuaikan volume
+            Kustomisasi Volume
           </label>
           <input
             type="range"
